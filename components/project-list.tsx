@@ -2,8 +2,8 @@
 
 import React from "react"
 import { useState } from "react"
-import { useProjects, useArtists, useRealtimeProjects, useChecklistItems, supabase, globalMutate } from "@/lib/hooks"
-import { Plus, Trash2, Loader2, Pencil, ClipboardList, CheckCircle2, Circle, Settings } from "lucide-react"
+import { useProjects, useArtists, useRealtimeProjects, useChecklistItems, useSettings, supabase, globalMutate } from "@/lib/hooks"
+import { Plus, Trash2, Loader2, Pencil, ClipboardList, Settings } from "lucide-react"
 import { getFormatLabel } from "@/lib/format-utils"
 
 /* ---- Invisible preloader: triggers SWR fetch so data is cached for offline ---- */
@@ -45,12 +45,14 @@ function ProgressBadge({ projectId }: { projectId: string }) {
 function ChecklistCard({
   project,
   artistMap,
+  autoDeleteDays,
   onOpen,
   onEdit,
   onDelete,
 }: {
   project: any
   artistMap: Record<string, any>
+  autoDeleteDays: number
   onOpen: () => void
   onEdit: () => void
   onDelete: (e: React.MouseEvent) => void
@@ -67,8 +69,27 @@ function ChecklistCard({
     minute: "2-digit",
   })
 
+  // Jours/heures restants avant suppression auto (si configurée)
+  const deletionTimeMs =
+    autoDeleteDays > 0
+      ? new Date(project.created_at).getTime() + autoDeleteDays * 24 * 60 * 60 * 1000
+      : null
+  const msUntilDeletion = deletionTimeMs !== null ? Math.max(0, deletionTimeMs - Date.now()) : null
+  const daysUntilDeletion = msUntilDeletion !== null ? Math.floor(msUntilDeletion / (24 * 60 * 60 * 1000)) : null
+  const hoursUntilDeletion =
+    msUntilDeletion !== null && daysUntilDeletion === 0
+      ? Math.floor(msUntilDeletion / (60 * 60 * 1000))
+      : null
+
+  const suppressionLabel =
+    daysUntilDeletion !== null && daysUntilDeletion >= 1
+      ? `Suppression auto. dans ${daysUntilDeletion} j`
+      : hoursUntilDeletion !== null
+        ? `Suppression auto. dans ${hoursUntilDeletion} h`
+        : null
+
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden transition-colors hover:border-primary/30">
+    <div className="rounded-2xl border border-border/80 bg-card/90 backdrop-blur-sm overflow-hidden shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-primary/10">
       {/* Main clickable area */}
       <div
         role="button"
@@ -79,7 +100,7 @@ function ChecklistCard({
       >
         {/* Top row: format + progress */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-primary">{format}</span>
+          <span className="text-xs font-bold uppercase tracking-[0.22em] text-primary">{format}</span>
           <ProgressBadge projectId={project.id} />
         </div>
 
@@ -109,12 +130,19 @@ function ChecklistCard({
           ))}
         </div>
 
-        {/* Date */}
-        <p className="text-xs text-muted-foreground">{dateStr}</p>
+        {/* Date + mention suppression auto */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <p className="text-xs text-muted-foreground">{dateStr}</p>
+          {suppressionLabel && (
+            <span className="text-[11px] text-muted-foreground">
+              {suppressionLabel}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Action bar */}
-      <div className="flex items-center justify-end gap-1 border-t border-border/50 px-3 py-2 bg-secondary/30">
+      <div className="flex items-center justify-end gap-1 border-t border-border/50 px-3 py-2 bg-black/10">
         <button
           onClick={(e) => { e.stopPropagation(); onEdit() }}
           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-primary hover:bg-primary/10"
@@ -148,7 +176,9 @@ interface ProjectListProps {
 export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectListProps) {
   const { data: projects, isLoading } = useProjects()
   const { data: artists } = useArtists()
+  const { data: settings } = useSettings()
   const [creating, setCreating] = useState(false)
+  const autoDeleteDays = (settings as any)?.auto_delete_days ?? 0
 
   useRealtimeProjects()
 
@@ -205,15 +235,24 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
       </div>
 
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-4 pt-4 pb-2">
-        <h1 className="text-xl font-bold text-foreground">Pupitre</h1>
-        <button
-          onClick={onControlRoom}
-          className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-          aria-label="Control Room"
-        >
-          <Settings className="h-5 w-5" />
-        </button>
+      <header className="relative z-10 px-4 pt-6 pb-4">
+        <div className="rounded-2xl border border-border/70 bg-card/60 px-4 py-3 backdrop-blur-sm shadow-lg shadow-black/20">
+          <div className="flex items-center justify-center">
+            <h1 className="font-display text-2xl font-semibold text-foreground tracking-tight">
+              Pupitre
+            </h1>
+            <button
+              onClick={onControlRoom}
+              className="absolute right-8 top-[1.8rem] rounded-xl p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              aria-label="Control Room"
+            >
+              <Settings className="h-5 w-5" />
+            </button>
+          </div>
+          <p className="mt-0.5 text-center text-xs text-muted-foreground">
+            Checklists en direct pour la régie
+          </p>
+        </div>
       </header>
 
       {/* Content */}
@@ -240,7 +279,7 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
         {/* Checklist cards */}
         {!isLoading && generatedProjects.length > 0 && (
           <>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
+            <p className="text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground mb-3">
               Checklists en cours ({generatedProjects.length})
             </p>
             <div className="flex flex-col gap-3">
@@ -250,6 +289,7 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
                   <ChecklistCard
                     project={p}
                     artistMap={artistMap}
+                    autoDeleteDays={autoDeleteDays}
                     onOpen={() => onOpen(p.id, p.generated)}
                     onEdit={() => onEdit(p.id)}
                     onDelete={(e) => deleteProject(p.id, e)}
@@ -266,7 +306,7 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
         <button
           onClick={handleNew}
           disabled={creating}
-          className="flex w-full items-center justify-center gap-3 rounded-2xl bg-primary py-6 text-xl font-bold text-primary-foreground shadow-xl shadow-primary/30 transition-colors hover:bg-primary/90 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-3 rounded-2xl border border-primary/40 bg-primary py-6 text-xl font-bold text-primary-foreground shadow-xl shadow-primary/30 transition-all hover:-translate-y-0.5 hover:bg-primary/95 disabled:opacity-50 disabled:hover:translate-y-0"
         >
           {creating ? <Loader2 className="h-8 w-8 animate-spin" /> : <Plus className="h-8 w-8 stroke-[3]" />}
           Nouvelle checklist

@@ -1,11 +1,12 @@
 import React from "react"
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Manrope, Sora } from 'next/font/google'
 import { RegisterSW } from '@/components/register-sw'
 
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-body' })
+const sora = Sora({ subsets: ['latin'], variable: '--font-display' })
 
 export const metadata: Metadata = {
   title: 'Checklist Pupitre',
@@ -36,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fr" className={inter.variable} suppressHydrationWarning>
+    <html lang="fr" className={`${manrope.variable} ${sora.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
         {children}
         <RegisterSW />

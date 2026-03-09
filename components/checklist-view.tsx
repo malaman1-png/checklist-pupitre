@@ -346,68 +346,71 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
     : 0
 
   return (
-    <div className="p-4" style={{ touchAction: "manipulation" }}>
+    <div className="px-4 pb-6 pt-3" style={{ touchAction: "manipulation" }}>
       <audio ref={audioRef} />
 
-      <header className="flex items-center gap-3 mb-4">
-        <button
-          onClick={onBack}
-          className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-          aria-label="Retour"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <div className="flex-1 min-w-0">
-          {(() => {
-            const selIds: string[] = project?.selected_artist_ids || []
-            const customs: string[] = project?.custom_artists || []
-            const total = selIds.length + customs.length
-            const artistMap: Record<string, any> = {}
-            if (artists) { for (const a of artists as any[]) { artistMap[a.id] = a } }
-            return (
-              <>
-                <p className="text-xs font-semibold text-primary">{getFormatLabel(total)}</p>
-                <div className="flex flex-wrap gap-1 mt-0.5">
-                  {selIds.map((id: string) => {
-                    const artist = artistMap[id]
-                    const color = artist?.color || "#888888"
-                    return (
+      <header className="sticky top-2 z-20 mb-4 rounded-2xl border border-border/70 bg-card/70 p-3 shadow-lg shadow-black/20 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onBack}
+            className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary/70 transition-colors"
+            aria-label="Retour"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div className="flex-1 min-w-0">
+            {(() => {
+              const selIds: string[] = project?.selected_artist_ids || []
+              const customs: string[] = project?.custom_artists || []
+              const total = selIds.length + customs.length
+              const artistMap: Record<string, any> = {}
+              if (artists) { for (const a of artists as any[]) { artistMap[a.id] = a } }
+              return (
+                <>
+                  <p className="text-xs font-semibold text-primary">{getFormatLabel(total)}</p>
+                  <div className="flex flex-wrap gap-1 mt-0.5">
+                    {selIds.map((id: string) => {
+                      const artist = artistMap[id]
+                      const color = artist?.color || "#888888"
+                      return (
+                        <span
+                          key={id}
+                          className="rounded-full px-2 py-0.5 text-xs font-medium"
+                          style={{ backgroundColor: `${color}26`, color }}
+                        >
+                          {artist?.name || "?"}
+                        </span>
+                      )
+                    })}
+                    {customs.map((name: string) => (
                       <span
-                        key={id}
+                        key={name}
                         className="rounded-full px-2 py-0.5 text-xs font-medium"
-                        style={{ backgroundColor: `${color}26`, color }}
+                        style={{ backgroundColor: "#88888826", color: "#888888" }}
                       >
-                        {artist?.name || "?"}
+                        {name}
                       </span>
-                    )
-                  })}
-                  {customs.map((name: string) => (
-                    <span
-                      key={name}
-                      className="rounded-full px-2 py-0.5 text-xs font-medium"
-                      style={{ backgroundColor: "#88888826", color: "#888888" }}
-                    >
-                      {name}
-                    </span>
-                  ))}
-                </div>
-              </>
-            )
-          })()}
-          <p className="text-xs text-muted-foreground mt-1">
-            {checkedCount} / {totalItems}
-          </p>
+                    ))}
+                  </div>
+                </>
+              )
+            })()}
+            <p className="text-xs text-muted-foreground mt-1">
+              {checkedCount} / {totalItems}
+            </p>
+          </div>
+          {allChecked && (
+            <span className="rounded-full bg-success/20 px-3 py-1 text-xs font-bold text-success animate-pulse">
+              COMPLET
+            </span>
+          )}
         </div>
-        {allChecked && (
-          <span className="rounded-full bg-success/20 px-3 py-1 text-xs font-bold text-success animate-pulse">
-            COMPLET
-          </span>
-        )}
+        <div className="mt-3 h-px w-full bg-border/70" />
       </header>
 
       {/* Recap (always visible) + Edit button */}
       {project && (
-        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        <div className="mb-3 rounded-2xl border border-border/70 bg-card/50 p-3 backdrop-blur-sm flex flex-wrap items-center gap-1.5">
           {project.include_son && (
             <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[11px] font-semibold text-blue-500">
               {(settings as any)?.label_son || "SON"}
@@ -452,9 +455,9 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
       )}
 
       {/* Progress bar */}
-      <div className="w-full h-2 rounded-full bg-secondary mb-6 overflow-hidden">
+      <div className="w-full h-2 rounded-full bg-secondary/80 mb-6 overflow-hidden">
         <div
-          className="h-full rounded-full bg-primary transition-all duration-300"
+          className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-300"
           style={{ width: `${totalItems > 0 ? (checkedCount / totalItems) * 100 : 0}%` }}
         />
       </div>
@@ -529,19 +532,19 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
           if (artists) { for (const a of artists as any[]) { artistMap[a.name] = a } }
 
           return (
-            <section key={typeId}>
+            <section key={typeId} className="overflow-hidden rounded-xl border border-border/70 bg-card/70 shadow-lg shadow-black/15 backdrop-blur-sm">
               <div
-                className="rounded-t-lg px-4 py-2"
+                className="px-4 py-2.5"
                 style={{ backgroundColor: `${color}${Math.round(opacity * 255).toString(16).padStart(2, "0")}` }}
               >
                 <h2
-                  className="text-xs font-bold uppercase tracking-wider"
+                  className="text-xs font-bold uppercase tracking-[0.2em]"
                   style={{ color }}
                 >
                   {group.type?.name || "Sans type"}
                 </h2>
               </div>
-              <div className="border border-t-0 border-border rounded-b-lg overflow-hidden">
+              <div className="overflow-hidden border-t border-border/50">
                 {/* Shared items (no artist_key) */}
                 {sharedItems.map((item: any, idx: number) => {
                   const checked = isChecked(item.id)
@@ -554,7 +557,7 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
                       } ${
                         checked
                           ? "bg-success/10 text-success"
-                          : "bg-card text-foreground"
+                          : "bg-transparent text-foreground hover:bg-secondary/30"
                       }`}
                       style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
                     >
@@ -588,7 +591,7 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
                       {/* Artist sub-header */}
                       <div
                         className={`px-4 py-1.5 flex items-center gap-2 ${sharedItems.length > 0 || groupIdx > 0 ? "border-t border-border" : ""}`}
-                        style={{ backgroundColor: `${artistColor}15` }}
+                        style={{ backgroundColor: `${artistColor}12` }}
                       >
                         <span
                           className="h-2.5 w-2.5 rounded-full flex-shrink-0"
@@ -608,7 +611,7 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
                             className={`w-full flex items-center justify-between min-h-[48px] ${spacingClass} ${fontSizeClass} transition-colors border-t border-border select-none ${
                               checked
                                 ? "bg-success/10 text-success"
-                                : "bg-card text-foreground"
+                                : "bg-transparent text-foreground hover:bg-secondary/30"
                             }`}
                             style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
                           >
@@ -642,7 +645,7 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
                       className={`w-full flex items-center justify-between min-h-[48px] ${spacingClass} ${fontSizeClass} transition-colors border-t border-border select-none ${
                         checked
                           ? "bg-success/10 text-success"
-                          : "bg-card text-foreground"
+                          : "bg-transparent text-foreground hover:bg-secondary/30"
                       }`}
                       style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
                     >

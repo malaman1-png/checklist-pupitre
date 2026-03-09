@@ -544,8 +544,9 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
     return list
   })()
 
-  const selectedCardClass = "border-primary/60 bg-primary/15 ring-1 ring-primary/30"
-  const unselectedCardClass = "border-border bg-card"
+  const selectedCardClass = "border-primary/60 bg-primary/15 ring-1 ring-primary/30 shadow-inner"
+  const unselectedCardClass = "border-border/80 bg-secondary/25"
+  const sectionCardClass = "rounded-2xl border border-border/70 bg-card/65 p-4 shadow-lg shadow-black/15 backdrop-blur-sm"
   const missingModularVersionSet = new Set(
     Object.entries(modularChoices)
       .filter(([actId]) => {
@@ -556,25 +557,27 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
   )
 
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-dvh pb-8">
       {/* Header */}
       <header className="px-4 pt-5 pb-1">
-        <button
-          onClick={onBack}
-          className="mb-3 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Retour
-        </button>
-        <h1 className="text-xl font-bold text-foreground text-center">{"Ingredients du spectacle"}</h1>
-        <p className="text-sm text-muted-foreground text-center mt-1 leading-relaxed">
-          {"Ajoute les elements requis, puis tout en bas clique sur \"Generer la checklist\"."}
-        </p>
+        <div className="rounded-2xl border border-border/70 bg-card/65 px-4 py-3 shadow-lg shadow-black/20 backdrop-blur-sm">
+          <button
+            onClick={onBack}
+            className="mb-3 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour
+          </button>
+          <h1 className="font-display text-xl font-semibold text-foreground text-center">{"Ingredients du spectacle"}</h1>
+          <p className="text-sm text-muted-foreground text-center mt-1 leading-relaxed">
+            {"Ajoute les elements requis, puis tout en bas clique sur \"Generer la checklist\"."}
+          </p>
+        </div>
       </header>
 
       <div className="px-4 mt-6 flex flex-col gap-6">
         {/* ── Section 1: Artistes ── */}
-        <section>
+        <section className={sectionCardClass}>
           <h2 className="text-sm font-bold text-foreground mb-0.5">Artistes</h2>
           <p className="text-xs text-muted-foreground mb-3">{"Selectionne d'abord les artistes presents sur le spectacle"}</p>
 
@@ -642,7 +645,7 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
 
         {/* ── Section 2: Transport ── */}
         <section
-          className={`transition-all duration-500 ease-out ${
+          className={`${sectionCardClass} transition-all duration-500 ease-out ${
             showSection2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none h-0 overflow-hidden"
           }`}
         >
@@ -674,7 +677,7 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
 
         {/* ── Section 2b: Technique ── */}
         <section
-          className={`transition-all duration-500 ease-out ${
+          className={`${sectionCardClass} transition-all duration-500 ease-out ${
             showSection2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none h-0 overflow-hidden"
           }`}
         >
@@ -707,7 +710,7 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
 
         {/* ── Section 3: Actes ── */}
         <section
-          className={`transition-all duration-500 ease-out ${
+          className={`${sectionCardClass} transition-all duration-500 ease-out ${
             showSection3 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none h-0 overflow-hidden"
           }`}
         >
@@ -863,7 +866,7 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
 
       {/* Error message & Generate button - inline at bottom of page */}
       {hasArtists && (
-        <div className="px-4 mt-8 pb-10">
+        <div className="sticky bottom-0 z-20 mt-8 bg-gradient-to-t from-background via-background/95 to-transparent px-4 pb-6 pt-4 backdrop-blur-sm">
           {genError && (
             <div className="mb-4 rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {genError}
@@ -872,7 +875,7 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
           <button
             onClick={generateChecklist}
             disabled={generating}
-            className="flex w-full items-center justify-center gap-3 rounded-2xl bg-primary py-6 text-xl font-bold text-primary-foreground shadow-xl shadow-primary/30 transition-colors hover:bg-primary/90 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-primary/40 bg-primary py-6 text-xl font-bold text-primary-foreground shadow-xl shadow-primary/30 transition-all hover:-translate-y-0.5 hover:bg-primary/95 disabled:opacity-50 disabled:hover:translate-y-0"
           >
             {generating ? (
               <Loader2 className="h-7 w-7 animate-spin" />
