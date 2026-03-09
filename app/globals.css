@@ -16,22 +16,22 @@
     --card-foreground: 210 20% 95%;
     --popover: 224 24% 12%;
     --popover-foreground: 210 20% 95%;
-    --primary: 191 96% 56%;
+    --primary: 194 90% 54%;
     --primary-foreground: 0 0% 100%;
     --secondary: 224 20% 16%;
     --secondary-foreground: 210 20% 95%;
     --muted: 224 18% 14%;
     --muted-foreground: 214 16% 64%;
-    --accent: 218 90% 59%;
+    --accent: 214 88% 62%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
     --border: 224 15% 23%;
     --input: 224 15% 22%;
-    --ring: 191 96% 56%;
-    --chart-1: 191 96% 56%;
+    --ring: 194 90% 54%;
+    --chart-1: 194 90% 54%;
     --chart-2: 160 60% 45%;
-    --chart-3: 218 90% 59%;
+    --chart-3: 214 88% 62%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     --radius: 0.95rem;
@@ -47,12 +47,50 @@
   body {
     @apply bg-background text-foreground;
     background-image:
-      radial-gradient(circle at 12% 0%, hsl(191 96% 56% / 0.22), transparent 34%),
-      radial-gradient(circle at 100% 8%, hsl(218 90% 59% / 0.18), transparent 32%),
-      radial-gradient(circle at 52% -16%, hsl(210 70% 98% / 0.08), transparent 28%),
+      radial-gradient(circle at 10% -8%, hsl(194 90% 54% / 0.2), transparent 36%),
+      radial-gradient(circle at 100% 12%, hsl(214 88% 62% / 0.16), transparent 33%),
+      radial-gradient(circle at 52% -16%, hsl(210 70% 98% / 0.06), transparent 28%),
       linear-gradient(180deg, hsl(223 31% 10%), hsl(223 31% 8%) 45%, hsl(224 33% 6%));
     background-attachment: fixed;
     letter-spacing: 0.01em;
+  }
+}
+
+@layer components {
+  .cta-premium {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid hsl(var(--primary) / 0.35);
+    background-image: linear-gradient(115deg, hsl(var(--primary)), hsl(202 92% 58%), hsl(var(--accent)));
+    box-shadow: 0 14px 34px hsl(var(--primary) / 0.34);
+    transition: transform 0.28s ease, box-shadow 0.28s ease, filter 0.28s ease;
+  }
+
+  .cta-premium::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    background: linear-gradient(120deg, transparent 18%, rgb(255 255 255 / 0.24) 50%, transparent 82%);
+    transition: opacity 0.28s ease;
+  }
+
+  .cta-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 44px hsl(var(--accent) / 0.36);
+    filter: saturate(1.04);
+  }
+
+  .cta-premium:hover::before {
+    opacity: 1;
+  }
+
+  .cta-premium:disabled {
+    transform: none;
+    filter: none;
   }
 }
 

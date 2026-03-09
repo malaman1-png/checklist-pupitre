@@ -349,7 +349,7 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
     <div className="px-4 pb-6 pt-3" style={{ touchAction: "manipulation" }}>
       <audio ref={audioRef} />
 
-      <header className="sticky top-2 z-20 mb-4 rounded-2xl border border-border/70 bg-card/70 p-3 shadow-lg shadow-black/20 backdrop-blur-sm">
+      <header className="sticky top-2 z-20 mb-4 rounded-2xl border border-border/55 bg-card/55 p-3 shadow-lg shadow-black/10 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
@@ -410,7 +410,7 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
 
       {/* Recap (always visible) + Edit button */}
       {project && (
-        <div className="mb-3 rounded-2xl border border-border/70 bg-card/50 p-3 backdrop-blur-sm flex flex-wrap items-center gap-1.5">
+        <div className="mb-3 rounded-2xl border border-border/55 bg-card/45 p-3 backdrop-blur-sm flex flex-wrap items-center gap-1.5">
           {project.include_son && (
             <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[11px] font-semibold text-blue-500">
               {(settings as any)?.label_son || "SON"}
@@ -532,7 +532,7 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
           if (artists) { for (const a of artists as any[]) { artistMap[a.name] = a } }
 
           return (
-            <section key={typeId} className="overflow-hidden rounded-xl border border-border/70 bg-card/70 shadow-lg shadow-black/15 backdrop-blur-sm">
+            <section key={typeId} className="overflow-hidden rounded-xl border border-border/55 bg-card/55 shadow-lg shadow-black/10 backdrop-blur-sm">
               <div
                 className="px-4 py-2.5"
                 style={{ backgroundColor: `${color}${Math.round(opacity * 255).toString(16).padStart(2, "0")}` }}

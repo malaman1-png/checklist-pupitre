@@ -89,7 +89,7 @@ function ChecklistCard({
         : null
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-card/90 backdrop-blur-sm overflow-hidden shadow-lg shadow-black/20 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-primary/10">
+    <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm overflow-hidden shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-primary/10">
       {/* Main clickable area */}
       <div
         role="button"
@@ -236,7 +236,7 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
 
       {/* Header */}
       <header className="relative z-10 px-4 pt-6 pb-4">
-        <div className="rounded-2xl border border-border/70 bg-card/60 px-4 py-3 backdrop-blur-sm shadow-lg shadow-black/20">
+        <div className="rounded-2xl border border-border/55 bg-card/45 px-4 py-3 backdrop-blur-sm shadow-lg shadow-black/10">
           <div className="flex items-center justify-between">
             <span className="h-9 w-9" aria-hidden="true" />
             <h1 className="font-display text-2xl font-semibold text-foreground tracking-tight">
@@ -304,12 +304,8 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
         <button
           onClick={handleNew}
           disabled={creating}
-          className="group relative isolate flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-r from-primary via-sky-400 to-accent py-5 text-lg font-bold text-primary-foreground shadow-xl shadow-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-accent/45 disabled:opacity-50 disabled:hover:translate-y-0"
+          className="cta-premium flex w-full items-center justify-center gap-3 rounded-2xl py-5 text-lg font-bold text-primary-foreground disabled:opacity-50"
         >
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[linear-gradient(120deg,transparent_12%,rgba(255,255,255,0.35)_50%,transparent_88%)]"
-          />
           {creating ? <Loader2 className="relative z-10 h-8 w-8 animate-spin" /> : <Plus className="relative z-10 h-8 w-8 stroke-[3]" />}
           <span className="relative z-10 tracking-[0.01em]">Nouvelle checklist</span>
         </button>

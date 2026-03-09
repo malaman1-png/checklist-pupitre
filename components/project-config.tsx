@@ -544,9 +544,9 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
     return list
   })()
 
-  const selectedCardClass = "border-primary/60 bg-primary/15 ring-1 ring-primary/30 shadow-inner"
-  const unselectedCardClass = "border-border/80 bg-secondary/25"
-  const sectionCardClass = "rounded-2xl border border-border/70 bg-card/65 p-4 shadow-lg shadow-black/15 backdrop-blur-sm"
+  const selectedCardClass = "border-primary/45 bg-primary/10 ring-1 ring-primary/20"
+  const unselectedCardClass = "border-border/55 bg-card/35"
+  const sectionCardClass = "rounded-2xl border border-border/55 bg-card/45 p-4 shadow-lg shadow-black/10 backdrop-blur-sm"
   const missingModularVersionSet = new Set(
     Object.entries(modularChoices)
       .filter(([actId]) => {
@@ -560,7 +560,7 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
     <div className="min-h-dvh pb-8">
       {/* Header */}
       <header className="px-4 pt-5 pb-1">
-        <div className="rounded-2xl border border-border/70 bg-card/65 px-4 py-3 shadow-lg shadow-black/20 backdrop-blur-sm">
+        <div className="rounded-2xl border border-border/55 bg-card/45 px-4 py-3 shadow-lg shadow-black/10 backdrop-blur-sm">
           <button
             onClick={onBack}
             className="mb-3 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -759,7 +759,7 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
                               fixedVersionChoices[act.id] === v.id
                                 ? "bg-primary text-primary-foreground"
                                 : isSelected
-                                  ? "bg-primary/10 text-foreground hover:bg-primary/20"
+                                  ? "bg-primary/10 text-foreground hover:bg-primary/15"
                                   : "bg-secondary text-muted-foreground hover:text-foreground"
                             }`}
                           >
@@ -810,7 +810,7 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
                             modularChoices[act.id] === n
                               ? "bg-primary text-primary-foreground"
                               : isSelected
-                                ? "bg-primary/10 text-foreground hover:bg-primary/20"
+                                ? "bg-primary/10 text-foreground hover:bg-primary/15"
                                 : "bg-secondary text-muted-foreground hover:text-foreground"
                           }`}
                         >
@@ -847,7 +847,7 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
                               : hasMissingVersion
                                 ? "bg-destructive/20 text-destructive hover:bg-destructive/30"
                                 : isSelected
-                                ? "bg-primary/10 text-foreground hover:bg-primary/20"
+                                ? "bg-primary/10 text-foreground hover:bg-primary/15"
                                 : "bg-secondary text-muted-foreground hover:text-foreground"
                           }`}
                         >
@@ -865,7 +865,7 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
 
       {/* Error message & Generate button - inline at bottom of page */}
       {hasArtists && (
-        <div className="sticky bottom-0 z-20 mt-8 bg-gradient-to-t from-background via-background/95 to-transparent px-4 pb-6 pt-4 backdrop-blur-sm">
+        <div className="px-4 mt-8 pb-10">
           {genError && (
             <div className="mb-4 rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {genError}
@@ -874,12 +874,8 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
           <button
             onClick={generateChecklist}
             disabled={generating}
-            className="group relative isolate flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-r from-primary via-sky-400 to-accent py-5 text-lg font-bold text-primary-foreground shadow-xl shadow-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-accent/45 disabled:opacity-50 disabled:hover:translate-y-0"
+            className="cta-premium flex w-full items-center justify-center gap-3 rounded-2xl py-5 text-lg font-bold text-primary-foreground disabled:opacity-50"
           >
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[linear-gradient(120deg,transparent_12%,rgba(255,255,255,0.35)_50%,transparent_88%)]"
-            />
             {generating ? (
               <Loader2 className="relative z-10 h-7 w-7 animate-spin" />
             ) : (
