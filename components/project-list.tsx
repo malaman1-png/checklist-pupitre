@@ -250,9 +250,6 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
               <Settings className="h-5 w-5" />
             </button>
           </div>
-          <p className="mt-0.5 text-center text-xs text-muted-foreground">
-            Checklists en direct pour la régie
-          </p>
         </div>
       </header>
 
