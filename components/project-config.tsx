@@ -875,14 +875,20 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
           <button
             onClick={generateChecklist}
             disabled={generating}
-            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-primary/40 bg-primary py-6 text-xl font-bold text-primary-foreground shadow-xl shadow-primary/30 transition-all hover:-translate-y-0.5 hover:bg-primary/95 disabled:opacity-50 disabled:hover:translate-y-0"
+            className="group relative isolate flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-r from-primary via-sky-400 to-accent py-5 text-lg font-bold text-primary-foreground shadow-xl shadow-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-accent/45 disabled:opacity-50 disabled:hover:translate-y-0"
           >
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[linear-gradient(120deg,transparent_12%,rgba(255,255,255,0.35)_50%,transparent_88%)]"
+            />
             {generating ? (
-              <Loader2 className="h-7 w-7 animate-spin" />
+              <Loader2 className="relative z-10 h-7 w-7 animate-spin" />
             ) : (
-              <Sparkles className="h-7 w-7" />
+              <Sparkles className="relative z-10 h-7 w-7" />
             )}
-            {generating ? "Generation en cours..." : "Generer la checklist"}
+            <span className="relative z-10 tracking-[0.01em]">
+              {generating ? "Generation en cours..." : "Generer la checklist"}
+            </span>
           </button>
         </div>
       )}

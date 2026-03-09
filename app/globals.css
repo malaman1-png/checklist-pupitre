@@ -16,22 +16,22 @@
     --card-foreground: 210 20% 95%;
     --popover: 224 24% 12%;
     --popover-foreground: 210 20% 95%;
-    --primary: 183 100% 47%;
-    --primary-foreground: 223 31% 8%;
+    --primary: 191 96% 56%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 224 20% 16%;
     --secondary-foreground: 210 20% 95%;
     --muted: 224 18% 14%;
     --muted-foreground: 214 16% 64%;
-    --accent: 198 94% 60%;
-    --accent-foreground: 223 31% 8%;
+    --accent: 218 90% 59%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
     --border: 224 15% 23%;
     --input: 224 15% 22%;
-    --ring: 183 100% 47%;
-    --chart-1: 183 100% 47%;
+    --ring: 191 96% 56%;
+    --chart-1: 191 96% 56%;
     --chart-2: 160 60% 45%;
-    --chart-3: 198 94% 60%;
+    --chart-3: 218 90% 59%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     --radius: 0.95rem;
@@ -47,8 +47,9 @@
   body {
     @apply bg-background text-foreground;
     background-image:
-      radial-gradient(circle at 12% 0%, hsl(183 100% 47% / 0.16), transparent 32%),
-      radial-gradient(circle at 100% 8%, hsl(31 100% 62% / 0.14), transparent 28%),
+      radial-gradient(circle at 12% 0%, hsl(191 96% 56% / 0.22), transparent 34%),
+      radial-gradient(circle at 100% 8%, hsl(218 90% 59% / 0.18), transparent 32%),
+      radial-gradient(circle at 52% -16%, hsl(210 70% 98% / 0.08), transparent 28%),
       linear-gradient(180deg, hsl(223 31% 10%), hsl(223 31% 8%) 45%, hsl(224 33% 6%));
     background-attachment: fixed;
     letter-spacing: 0.01em;
