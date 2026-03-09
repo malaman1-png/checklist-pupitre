@@ -14,4 +14,4 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Deploy to Railway
-        run: npx @railway/cli@latest up --project 7d7ad93e-ea92-4ede-9f8f-3473936c30a5 --environment production --service 921011ce-c28a-4566-9fdb-2262289e458b --detach --ci -m "Deploy from GitHub Actions: ${{ github.sha }}"
+        run: npx @railway/cli@latest up --service 921011ce-c28a-4566-9fdb-2262289e458b --detach --ci -m "Deploy from GitHub: ${{ github.sha }}"
