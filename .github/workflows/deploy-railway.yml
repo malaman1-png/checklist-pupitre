@@ -8,24 +8,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "pnpm"
-
-      - name: Install Railway CLI
-        run: npm i -g @railway/cli
-
       - name: Deploy to Railway
-        run: railway up --project 7d7ad93e-ea92-4ede-9f8f-3473936c30a5 --environment production --service web --detach -m "Deploy from GitHub Actions: ${{ github.sha }}"
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --project 7d7ad93e-ea92-4ede-9f8f-3473936c30a5 --environment production --service 921011ce-c28a-4566-9fdb-2262289e458b --detach --ci -m "Deploy from GitHub Actions: ${{ github.sha }}"
