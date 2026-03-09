@@ -193,9 +193,19 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
   }
 
   return (
-    <div className="flex flex-col min-h-dvh">
+    <div className="relative flex flex-col min-h-dvh overflow-hidden">
+      {/* Decorative background logo */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <img
+          src="/slab-logo.png"
+          alt=""
+          aria-hidden="true"
+          className="w-[72vw] max-w-[560px] opacity-[0.08] select-none"
+        />
+      </div>
+
       {/* Header */}
-      <header className="flex items-center justify-between px-4 pt-4 pb-2">
+      <header className="relative z-10 flex items-center justify-between px-4 pt-4 pb-2">
         <h1 className="text-xl font-bold text-foreground">Pupitre</h1>
         <button
           onClick={onControlRoom}
@@ -207,7 +217,7 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
       </header>
 
       {/* Content */}
-      <div className="flex-1 px-4 pb-28">
+      <div className="relative z-10 flex-1 px-4 pb-28">
         {isLoading && (
           <div className="flex justify-center py-16">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

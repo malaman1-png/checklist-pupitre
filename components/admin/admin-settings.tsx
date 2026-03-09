@@ -1,17 +1,44 @@
 "use client"
 
+import { useState } from "react"
 import { useSettings, globalMutate } from "@/lib/hooks"
-import { adminUpdate } from "@/lib/admin-api"
+import { adminSetPassword, adminUpdate, setAdminPassword } from "@/lib/admin-api"
 import { AdminHeader } from "./admin-header"
 import { Loader2 } from "lucide-react"
 
 export function AdminSettings({ onBack }: { onBack: () => void }) {
   const { data: settings, isLoading } = useSettings()
+  const [newPassword, setNewPassword] = useState("")
+  const [passwordMsg, setPasswordMsg] = useState("")
+  const [savingPassword, setSavingPassword] = useState(false)
 
   async function update(field: string, value: string | number | boolean) {
     if (!settings) return
     await adminUpdate("settings", { [field]: value }, { id: settings.id })
     globalMutate("settings_singleton")
+  }
+
+  async function handlePasswordChange() {
+    const next = newPassword.trim()
+    if (next.length < 4) {
+      setPasswordMsg("Le mot de passe doit contenir au moins 4 caracteres.")
+      return
+    }
+
+    setSavingPassword(true)
+    setPasswordMsg("")
+    const res = await adminSetPassword(next)
+    setSavingPassword(false)
+
+    if (res.error) {
+      setPasswordMsg(res.error)
+      return
+    }
+
+    // Keep current session authenticated with the new password
+    setAdminPassword(next)
+    setNewPassword("")
+    setPasswordMsg("Mot de passe mis a jour.")
   }
 
   if (isLoading || !settings) {
@@ -72,14 +99,33 @@ export function AdminSettings({ onBack }: { onBack: () => void }) {
           />
         </label>
 
-        {/* Admin password info */}
+        {/* Admin password */}
         <div className="rounded-lg border border-border bg-card p-4">
           <label className="text-sm font-medium text-foreground block mb-1">
             Mot de passe Control Room
           </label>
-          <p className="text-xs text-muted-foreground">
-            {"Gere via la variable d'environnement ADMIN_PASSWORD sur le serveur. Non modifiable ici."}
+          <p className="text-xs text-muted-foreground mb-2">
+            Change le mot de passe de la Control Room pour tous les appareils.
           </p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Nouveau mot de passe"
+              className="flex-1 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground"
+            />
+            <button
+              onClick={handlePasswordChange}
+              disabled={savingPassword}
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {savingPassword ? "Enregistrement..." : "Mettre a jour"}
+            </button>
+          </div>
+          {!!passwordMsg && (
+            <p className="mt-2 text-xs text-muted-foreground">{passwordMsg}</p>
+          )}
         </div>
 
         {/* Auto delete */}

@@ -26,11 +26,32 @@ const ADMIN_TABLES = new Set([
   "act_version_items",
 ])
 
-function checkPassword(req: NextRequest): boolean {
+async function checkPassword(req: NextRequest): Promise<boolean> {
   const authHeader = req.headers.get("x-admin-password") || ""
+  if (!authHeader) return false
+
+  // 1) Primary password from server env (recommended for production)
   const envPassword = process.env.ADMIN_PASSWORD
-  if (!envPassword) return false
-  return authHeader === envPassword
+  if (envPassword && authHeader === envPassword) return true
+
+  // 2) Optional DB password fallback (legacy / editable from Control Room)
+  // If the column doesn't exist yet, we silently ignore and rely on env password.
+  try {
+    const supabase = createAdminClient()
+    const { data, error } = await supabase
+      .from("settings")
+      .select("admin_password")
+      .limit(1)
+      .single()
+
+    if (!error && data?.admin_password && authHeader === data.admin_password) {
+      return true
+    }
+  } catch {
+    // Ignore and fallback to false
+  }
+
+  return false
 }
 
 // Generic admin write endpoint
@@ -41,7 +62,7 @@ function checkPassword(req: NextRequest): boolean {
 //   match: { column: value } for update/delete filtering
 //   id: shorthand for match on id column
 export async function POST(req: NextRequest) {
-  if (!checkPassword(req)) {
+  if (!(await checkPassword(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -58,17 +79,59 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Table "${table}" not allowed` }, { status: 403 })
   }
 
-  const supabase = createAdminClient()
-
   try {
     let result: any
 
     switch (action) {
+      case "setPassword": {
+        const newPassword = data?.password
+        if (typeof newPassword !== "string" || newPassword.trim().length < 4) {
+          return NextResponse.json(
+            { error: "Le mot de passe doit contenir au moins 4 caracteres." },
+            { status: 400 }
+          )
+        }
+
+        const supabase = createAdminClient()
+        const { data: row } = await supabase.from("settings").select("id").limit(1).single()
+        if (!row?.id) {
+          return NextResponse.json({ error: "Ligne settings introuvable." }, { status: 500 })
+        }
+
+        const pwRes = await supabase
+          .from("settings")
+          .update({ admin_password: newPassword.trim() })
+          .eq("id", row.id)
+          .select()
+
+        if (pwRes.error) {
+          const msg = pwRes.error.message || ""
+          if (msg.includes("admin_password")) {
+            return NextResponse.json(
+              {
+                error:
+                  "Le champ admin_password n'existe pas en base. Execute le script SQL pour le re-creer.",
+              },
+              { status: 400 }
+            )
+          }
+          return NextResponse.json({ error: msg }, { status: 500 })
+        }
+
+        return NextResponse.json({ ok: true })
+      }
+      case "ping": {
+        // Simple password check used for Control Room login.
+        // Ne touche pas à Supabase pour éviter d'exiger la clé service en prod.
+        return NextResponse.json({ ok: true })
+      }
       case "insert": {
+        const supabase = createAdminClient()
         result = await supabase.from(table).insert(data).select()
         break
       }
       case "update": {
+        const supabase = createAdminClient()
         let q = supabase.from(table).update(data)
         if (id) q = q.eq("id", id)
         else if (match) {
@@ -80,10 +143,12 @@ export async function POST(req: NextRequest) {
         break
       }
       case "upsert": {
+        const supabase = createAdminClient()
         result = await supabase.from(table).upsert(data).select()
         break
       }
       case "delete": {
+        const supabase = createAdminClient()
         let q = supabase.from(table).delete()
         if (id) q = q.eq("id", id)
         else if (match) {
@@ -101,6 +166,7 @@ export async function POST(req: NextRequest) {
         if (!match || Object.keys(match).length === 0) {
           return NextResponse.json({ error: "deleteMatch requires match object" }, { status: 400 })
         }
+        const supabase = createAdminClient()
         let dq = supabase.from(table).delete()
         for (const [col, val] of Object.entries(match)) {
           dq = dq.eq(col, val)
@@ -110,11 +176,9 @@ export async function POST(req: NextRequest) {
       }
       case "deleteAll": {
         // Delete all rows (for bulk replace patterns like display_order)
+        const supabase = createAdminClient()
         result = await supabase.from(table).delete().neq("id", "00000000-0000-0000-0000-000000000000")
         break
-      }
-      case "ping": {
-        return NextResponse.json({ ok: true })
       }
       default:
         return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 })

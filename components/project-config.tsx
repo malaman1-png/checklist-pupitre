@@ -65,12 +65,13 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
   const maxArtists = selectedArtistIds.length + customArtists.length
 
   const [transportMode, setTransportMode] = useState<"car" | "train_mono">("car")
-  const [includeSon, setIncludeSon] = useState(true)
+  const [includeSon, setIncludeSon] = useState(false)
   const [includeLight, setIncludeLight] = useState(true)
   const [selectedFixed, setSelectedFixed] = useState<Set<string>>(new Set())
   const [modularChoices, setModularChoices] = useState<Record<string, number>>({})
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState<string | null>(null)
+  const [shakeMissingVersions, setShakeMissingVersions] = useState(false)
 
   // Version selection: actId -> versionId
   const [fixedVersionChoices, setFixedVersionChoices] = useState<Record<string, string>>({})
@@ -97,7 +98,7 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
 
   useEffect(() => {
     if (project) {
-      setIncludeSon(project.generated ? project.include_son : true)
+      setIncludeSon(project.generated ? project.include_son : false)
       setIncludeLight(project.generated ? project.include_light : true)
       if (project.transport_mode) setTransportMode(project.transport_mode)
       if (project.selected_artist_ids) setSelectedArtistIds(project.selected_artist_ids)
@@ -199,6 +200,20 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
 
   async function generateChecklist() {
     if (!allMateriel || !types) return
+    const missingVersionActIds = Object.entries(modularChoices)
+      .filter(([actId]) => {
+        const versions = allActVersions[`modular:${actId}`] || []
+        return versions.length > 0 && !modularVersionChoices[actId]
+      })
+      .map(([actId]) => actId)
+
+    if (missingVersionActIds.length > 0) {
+      setGenError("Choisis une version pour chaque acte modulable selectionne.")
+      setShakeMissingVersions(true)
+      setTimeout(() => setShakeMissingVersions(false), 900)
+      return
+    }
+
     setGenerating(true)
     setGenError(null)
 
@@ -531,6 +546,14 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
 
   const selectedCardClass = "border-primary/60 bg-primary/15 ring-1 ring-primary/30"
   const unselectedCardClass = "border-border bg-card"
+  const missingModularVersionSet = new Set(
+    Object.entries(modularChoices)
+      .filter(([actId]) => {
+        const versions = allActVersions[`modular:${actId}`] || []
+        return versions.length > 0 && !modularVersionChoices[actId]
+      })
+      .map(([actId]) => actId)
+  )
 
   return (
     <div className="min-h-dvh">
@@ -749,14 +772,29 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
 
               // Modular act
               const isSelected = act.id in modularChoices
+              const hasMissingVersion = missingModularVersionSet.has(act.id)
               return (
                 <div
                   key={key}
                   className={`rounded-xl border px-4 py-3 transition-all ${
-                    isSelected ? selectedCardClass : unselectedCardClass
+                    hasMissingVersion
+                      ? "border-destructive/60 bg-destructive/10"
+                      : isSelected
+                        ? selectedCardClass
+                        : unselectedCardClass
+                  } ${hasMissingVersion && shakeMissingVersions ? "cfg-shake" : ""}`}
+                  aria-invalid={hasMissingVersion}
+                  data-missing-version={hasMissingVersion ? "true" : "false"}
+                >
+                  <span
+                    className={`text-sm font-semibold ${
+                      hasMissingVersion
+                        ? "text-destructive"
+                        : isSelected
+                          ? "text-foreground"
+                          : "text-muted-foreground"
                   }`}
                 >
-                  <span className={`text-sm font-semibold ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>
                     {act.name}
                   </span>
                   {maxArtists > 0 ? (
@@ -782,8 +820,14 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
                     <p className="text-[11px] text-muted-foreground mt-1">Selectionne des artistes pour choisir un nombre</p>
                   )}
                   {hasVersions && (
-                    <div className="flex flex-wrap items-center gap-1.5 mt-2 pt-2 border-t border-border/50">
-                      <span className="text-[11px] text-muted-foreground">version:</span>
+                    <div
+                      className={`flex flex-wrap items-center gap-1.5 mt-2 pt-2 border-t ${
+                        hasMissingVersion ? "border-destructive/40" : "border-border/50"
+                      } ${hasMissingVersion && shakeMissingVersions ? "cfg-shake" : ""}`}
+                    >
+                      <span className={`text-[11px] ${hasMissingVersion ? "text-destructive" : "text-muted-foreground"}`}>
+                        version:
+                      </span>
                       {versions.map((v: any) => (
                         <button
                           key={v.id}
@@ -798,7 +842,9 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
                           className={`rounded-lg px-3 py-1 text-xs font-semibold transition-colors ${
                             modularVersionChoices[act.id] === v.id
                               ? "bg-primary text-primary-foreground"
-                              : isSelected
+                              : hasMissingVersion
+                                ? "bg-destructive/20 text-destructive hover:bg-destructive/30"
+                                : isSelected
                                 ? "bg-primary/10 text-foreground hover:bg-primary/20"
                                 : "bg-secondary text-muted-foreground hover:text-foreground"
                           }`}
@@ -837,6 +883,19 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
           </button>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes cfg-shake {
+          0% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          50% { transform: translateX(4px); }
+          75% { transform: translateX(-3px); }
+          100% { transform: translateX(0); }
+        }
+        .cfg-shake {
+          animation: cfg-shake 0.35s ease-in-out 2;
+        }
+      `}</style>
     </div>
   )
 }
