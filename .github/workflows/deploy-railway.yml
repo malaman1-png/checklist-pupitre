@@ -8,11 +8,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    container: ghcr.io/railwayapp/cli:latest
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Deploy to Railway
-        run: railway up --project 7d7ad93e-ea92-4ede-9f8f-3473936c30a5 --environment production --service 921011ce-c28a-4566-9fdb-2262289e458b --detach --ci -m "Deploy from GitHub Actions: ${{ github.sha }}"
+        run: npx @railway/cli@latest up --project 7d7ad93e-ea92-4ede-9f8f-3473936c30a5 --environment production --service 921011ce-c28a-4566-9fdb-2262289e458b --detach --ci -m "Deploy from GitHub Actions: ${{ github.sha }}"
