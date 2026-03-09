@@ -230,7 +230,11 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
           src="/slab-logo.png"
           alt=""
           aria-hidden="true"
-          className="w-[72vw] max-w-[560px] opacity-[0.08] select-none"
+          className="w-[72vw] max-w-[560px] select-none mix-blend-screen opacity-[0.12]"
+          style={{
+            maskImage: "radial-gradient(ellipse at center, black 48%, transparent 82%)",
+            WebkitMaskImage: "radial-gradient(ellipse at center, black 48%, transparent 82%)",
+          }}
         />
       </div>
 
