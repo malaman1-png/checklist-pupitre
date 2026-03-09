@@ -1,0 +1,18 @@
+name: deploy-railway
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: npx -y @railway/cli@latest up --service 921011ce-c28a-4566-9fdb-2262289e458b --detach --ci -m "Deploy from GitHub ${{ github.sha }}"
