@@ -569,9 +569,9 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
             Retour
           </button>
           <h1 className="font-display text-xl font-semibold text-foreground text-center">{"Ingredients du spectacle"}</h1>
-          <p className="text-sm text-muted-foreground text-center mt-1 leading-relaxed">
-            {"Ajoute les elements requis, puis tout en bas clique sur \"Generer la checklist\"."}
-          </p>
+        <p className="text-sm text-muted-foreground text-center mt-1 leading-relaxed">
+          {"compose ton pupitre et clique en bas sur le bouton Generer"}
+        </p>
         </div>
       </header>
 
@@ -681,8 +681,7 @@ export function ProjectConfig({ projectId, onBack, onGenerated }: ProjectConfigP
             showSection2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none h-0 overflow-hidden"
           }`}
         >
-          <h2 className="text-sm font-bold text-foreground mb-0.5">Technique</h2>
-          <p className="text-xs text-muted-foreground mb-3">{"Decoche si besoin"}</p>
+          <h2 className="text-sm font-bold text-foreground mb-3">Technique</h2>
 
           <div className="flex gap-2">
             <button
