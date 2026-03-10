@@ -96,8 +96,16 @@ function ChecklistCard({
         ? `Suppression auto. dans ${hoursUntilDeletion} h`
         : null
 
+  const isEtincelle = spectacle === "etincelle"
+
   return (
-    <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm overflow-hidden shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-primary/10">
+    <div
+      className={`rounded-2xl border backdrop-blur-sm overflow-hidden shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 ${
+        isEtincelle
+          ? "border-amber-500/30 bg-gradient-to-br from-amber-500/[0.05] via-card/80 to-card/90 hover:border-amber-400/45 hover:shadow-amber-500/10"
+          : "border-border/60 bg-card/80 hover:border-primary/35 hover:shadow-primary/10"
+      }`}
+    >
       {/* Main clickable area */}
       <div
         role="button"
@@ -108,9 +116,9 @@ function ChecklistCard({
       >
         {/* Top row: format + progress */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold uppercase tracking-[0.22em] text-primary">
+          <span className={`text-xs font-bold uppercase tracking-[0.22em] ${isEtincelle ? "text-amber-400" : "text-primary"}`}>
             {getSpectacleLabel(spectacle)}
-            <span className="ml-2 text-[11px] font-medium tracking-[0.08em] text-muted-foreground">
+            <span className={`ml-2 text-[11px] font-medium tracking-[0.08em] ${isEtincelle ? "text-amber-200/80" : "text-muted-foreground"}`}>
               {spectacle === "etincelle" ? (etincelleVersionLabel || format) : format}
             </span>
           </span>
@@ -155,7 +163,7 @@ function ChecklistCard({
       </div>
 
       {/* Action bar */}
-      <div className="flex items-center justify-end gap-1 border-t border-border/50 px-3 py-2 bg-black/10">
+      <div className={`flex items-center justify-end gap-1 border-t px-3 py-2 ${isEtincelle ? "border-amber-500/20 bg-amber-500/[0.06]" : "border-border/50 bg-black/10"}`}>
         <button
           onClick={(e) => { e.stopPropagation(); onEdit() }}
           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-primary hover:bg-primary/10"
@@ -401,16 +409,22 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
                 onClick={() => setNewSpectacle("etincelle")}
                 className={`relative rounded-2xl border px-3 py-3 text-left transition-all duration-150 ${
                   newSpectacle === "etincelle"
-                    ? "border-primary/50 bg-primary/10 ring-1 ring-primary/30 shadow-lg shadow-primary/10"
-                    : "border-border/60 bg-secondary/40 hover:border-muted-foreground/45 hover:bg-secondary/65"
+                    ? "border-amber-400/60 bg-gradient-to-br from-amber-500/[0.22] via-amber-500/[0.14] to-secondary/60 ring-1 ring-amber-300/35 shadow-lg shadow-amber-500/20"
+                    : "border-amber-500/35 bg-gradient-to-br from-amber-500/[0.10] via-secondary/45 to-secondary/55 hover:border-amber-400/55 hover:bg-amber-500/[0.14]"
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <Flame className="h-4 w-4 text-primary" />
+                  <Flame
+                    className={`h-4 w-4 ${
+                      newSpectacle === "etincelle"
+                        ? "text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.55)]"
+                        : "text-amber-400/90"
+                    }`}
+                  />
                   <p className="text-sm font-semibold text-foreground">Etincelle</p>
                 </div>
                 {newSpectacle === "etincelle" && (
-                  <span className="absolute right-2 top-2 rounded-full bg-primary/20 p-1 text-primary">
+                  <span className="absolute right-2 top-2 rounded-full bg-amber-500/25 p-1 text-amber-300">
                     <Check className="h-3 w-3" />
                   </span>
                 )}

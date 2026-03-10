@@ -403,7 +403,11 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
     <div className="px-4 pb-6 pt-3" style={{ touchAction: "manipulation" }}>
       <audio ref={audioRef} />
 
-      <header className="sticky top-2 z-20 mb-4 rounded-2xl border border-border/55 bg-card/55 p-3 shadow-lg shadow-black/10 backdrop-blur-sm">
+      <header className={`sticky top-2 z-20 mb-4 rounded-2xl border p-3 shadow-lg shadow-black/10 backdrop-blur-sm ${
+        spectacle === "etincelle"
+          ? "border-amber-500/30 bg-gradient-to-r from-amber-500/[0.08] via-card/65 to-card/60"
+          : "border-border/55 bg-card/55"
+      }`}>
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
@@ -413,9 +417,9 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-primary">
+            <p className={`text-xs font-semibold ${spectacle === "etincelle" ? "text-amber-400" : "text-primary"}`}>
               {getSpectacleLabel(spectacle)}
-              <span className="ml-2 text-[11px] font-medium tracking-[0.08em] text-muted-foreground">
+              <span className={`ml-2 text-[11px] font-medium tracking-[0.08em] ${spectacle === "etincelle" ? "text-amber-100/80" : "text-muted-foreground"}`}>
                 {primaryLabel}
               </span>
             </p>
@@ -458,9 +462,13 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
 
       {/* Recap (always visible) + Edit button */}
       {project && (
-        <div className="mb-3 rounded-2xl border border-border/55 bg-card/45 p-3 backdrop-blur-sm flex flex-wrap items-center gap-1.5">
+        <div className={`mb-3 rounded-2xl border p-3 backdrop-blur-sm flex flex-wrap items-center gap-1.5 ${
+          spectacle === "etincelle"
+            ? "border-amber-500/25 bg-amber-500/[0.06]"
+            : "border-border/55 bg-card/45"
+        }`}>
           {spectacle === "etincelle" && (
-            <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-primary">
+            <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-400">
               Etincelle {etincelleVersionLabel || "Version"}
             </span>
           )}
