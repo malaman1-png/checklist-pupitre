@@ -1,0 +1,17 @@
+name: deploy-preprod
+
+on:
+  push:
+    branches:
+      - codex/etincelle-v1
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy preprod service
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: npx -y @railway/cli@latest up --service 62aa2936-91e1-4897-9cf5-9559507372fd --detach --ci -m "Preprod deploy from ${{ github.ref_name }} @ ${{ github.sha }}"
