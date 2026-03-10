@@ -2,9 +2,12 @@
 
 import React from "react"
 import { useState } from "react"
+import { Audiowide } from "next/font/google"
 import { useProjects, useArtists, useRealtimeProjects, useChecklistItems, useSettings, supabase, globalMutate } from "@/lib/hooks"
-import { Plus, Trash2, Loader2, Pencil, ClipboardList, Settings } from "lucide-react"
+import { Plus, Trash2, Loader2, Pencil, ClipboardList, Settings, Flame, Lightbulb, Check } from "lucide-react"
 import { getFormatLabel, getSpectacleLabel, normalizeSpectacle, type SpectacleKind } from "@/lib/format-utils"
+
+const headerTitleFont = Audiowide({ subsets: ["latin"], weight: "400" })
 
 /* ---- Invisible preloader: triggers SWR fetch so data is cached for offline ---- */
 function PreloadChecklist({ projectId }: { projectId: string }) {
@@ -291,8 +294,8 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
         <div className="rounded-2xl border border-border/55 bg-card/45 px-4 py-3 backdrop-blur-sm shadow-lg shadow-black/10">
           <div className="flex items-center justify-between">
             <span className="h-9 w-9" aria-hidden="true" />
-            <h1 className="font-display text-2xl font-semibold text-foreground tracking-tight">
-              Pupitre
+            <h1 className={`${headerTitleFont.className} max-w-[calc(100%-5.5rem)] bg-gradient-to-r from-cyan-300 via-primary to-fuchsia-300 bg-clip-text text-center text-[0.8rem] font-normal uppercase leading-tight tracking-[0.14em] text-transparent drop-shadow-[0_0_12px_rgba(56,189,248,0.35)] sm:text-[0.95rem]`}>
+              Checklist Generator BX4000
             </h1>
             <button
               onClick={onControlRoom}
@@ -368,33 +371,49 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
       </div>
 
       {showCreateModal && (
-        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-4 sm:items-center">
-          <div className="w-full max-w-md rounded-2xl border border-border/60 bg-card/95 p-4 shadow-2xl shadow-black/35 backdrop-blur">
-            <h2 className="text-base font-semibold text-foreground">Nouveau spectacle</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Choisis d'abord le spectacle a generer.</p>
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/65 p-4 backdrop-blur-[3px] animate-in fade-in-0 duration-150 sm:items-center">
+          <div className="w-full max-w-md rounded-3xl border border-border/70 bg-card/95 p-5 shadow-2xl shadow-black/40 backdrop-blur animate-in zoom-in-95 slide-in-from-bottom-3 duration-200 sm:slide-in-from-bottom-0">
+            <div className="mb-4">
+              <h2 className="text-center text-lg font-semibold tracking-tight text-foreground">Quel spectacle ?</h2>
+              <div className="mt-2 h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
+            </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-2">
+            <div className="mt-4 grid grid-cols-2 gap-2.5">
               <button
                 onClick={() => setNewSpectacle("pupitre")}
-                className={`rounded-xl border px-3 py-3 text-left transition-all ${
+                className={`relative rounded-2xl border px-3 py-3 text-left transition-all duration-150 ${
                   newSpectacle === "pupitre"
-                    ? "border-primary/45 bg-primary/10 ring-1 ring-primary/25"
-                    : "border-border/60 bg-secondary/40 hover:border-muted-foreground/45"
+                    ? "border-primary/50 bg-primary/10 ring-1 ring-primary/30 shadow-lg shadow-primary/10"
+                    : "border-border/60 bg-secondary/40 hover:border-muted-foreground/45 hover:bg-secondary/65"
                 }`}
               >
-                <p className="text-sm font-semibold text-foreground">Pupitre</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">Workflow complet actuel</p>
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-semibold text-foreground">Pupitre</p>
+                </div>
+                {newSpectacle === "pupitre" && (
+                  <span className="absolute right-2 top-2 rounded-full bg-primary/20 p-1 text-primary">
+                    <Check className="h-3 w-3" />
+                  </span>
+                )}
               </button>
               <button
                 onClick={() => setNewSpectacle("etincelle")}
-                className={`rounded-xl border px-3 py-3 text-left transition-all ${
+                className={`relative rounded-2xl border px-3 py-3 text-left transition-all duration-150 ${
                   newSpectacle === "etincelle"
-                    ? "border-primary/45 bg-primary/10 ring-1 ring-primary/25"
-                    : "border-border/60 bg-secondary/40 hover:border-muted-foreground/45"
+                    ? "border-primary/50 bg-primary/10 ring-1 ring-primary/30 shadow-lg shadow-primary/10"
+                    : "border-border/60 bg-secondary/40 hover:border-muted-foreground/45 hover:bg-secondary/65"
                 }`}
               >
-                <p className="text-sm font-semibold text-foreground">Etincelle</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">Artistes + sound system + version</p>
+                <div className="flex items-center gap-2">
+                  <Flame className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-semibold text-foreground">Etincelle</p>
+                </div>
+                {newSpectacle === "etincelle" && (
+                  <span className="absolute right-2 top-2 rounded-full bg-primary/20 p-1 text-primary">
+                    <Check className="h-3 w-3" />
+                  </span>
+                )}
               </button>
             </div>
 
@@ -404,7 +423,7 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
               </p>
             )}
 
-            <div className="mt-4 flex items-center justify-end gap-2">
+            <div className="mt-5 flex items-center justify-end gap-2.5 border-t border-border/50 pt-4">
               <button
                 onClick={() => {
                   if (creating) return
@@ -417,7 +436,7 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
               <button
                 onClick={handleNew}
                 disabled={creating}
-                className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.99] disabled:opacity-60"
               >
                 {creating ? "Creation..." : "Continuer"}
               </button>
