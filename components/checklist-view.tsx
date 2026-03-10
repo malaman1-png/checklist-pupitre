@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import type { TouchEvent } from "react"
 import { useChecklistItems, useSettings, useProject, useArtists, useProjectFixedActs, useProjectModularActs, useRealtimeChecklist, supabase, globalMutate } from "@/lib/hooks"
 import { getFormatLabel } from "@/lib/format-utils"
 import { ArrowLeft, Loader2, Check, Pencil } from "lucide-react"
+import { getTouchTapSlopPxFromSettings } from "@/lib/ui-settings"
 
 interface ChecklistViewProps {
   projectId: string
@@ -86,8 +88,11 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
 
   const [localChecks, setLocalChecks] = useState<Record<string, boolean>>({})
   const [celebrated, setCelebrated] = useState(false)
+  const touchTapSlopPx = getTouchTapSlopPxFromSettings(settings)
   const fontLevel = propFontLevel ?? 1
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const touchStartRef = useRef<Record<string, { x: number; y: number; ts: number }>>({})
+  const ignoredClickUntilRef = useRef<Record<string, number>>({})
 
   // Init local checks from localStorage
   useEffect(() => {
@@ -232,6 +237,42 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
     } catch {
       // Network failure: op stays in queue for retry
     }
+  }
+
+  function handleItemTouchStart(itemId: string, e: TouchEvent<HTMLButtonElement>) {
+    const t = e.touches[0]
+    if (!t) return
+    touchStartRef.current[itemId] = { x: t.clientX, y: t.clientY, ts: Date.now() }
+  }
+
+  function handleItemTouchEnd(itemId: string, e: TouchEvent<HTMLButtonElement>) {
+    const start = touchStartRef.current[itemId]
+    delete touchStartRef.current[itemId]
+    if (!start) return
+
+    const t = e.changedTouches[0]
+    if (!t) return
+
+    const dx = t.clientX - start.x
+    const dy = t.clientY - start.y
+    const distance = Math.hypot(dx, dy)
+    const elapsed = Date.now() - start.ts
+
+    // Treat as tap even with slight finger drift; if movement is larger, keep native scroll behavior.
+    if (distance <= touchTapSlopPx && elapsed <= 800) {
+      e.preventDefault()
+      ignoredClickUntilRef.current[itemId] = Date.now() + 500
+      toggleCheck(itemId)
+    }
+  }
+
+  function handleItemTouchCancel(itemId: string) {
+    delete touchStartRef.current[itemId]
+  }
+
+  function handleItemClick(itemId: string) {
+    if (Date.now() < (ignoredClickUntilRef.current[itemId] || 0)) return
+    toggleCheck(itemId)
   }
 
   // Flush pending ops queue (retry failed toggles)
@@ -551,7 +592,10 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
                   return (
                     <button
                       key={item.id}
-                      onClick={() => toggleCheck(item.id)}
+                      onClick={() => handleItemClick(item.id)}
+                      onTouchStart={(e) => handleItemTouchStart(item.id, e)}
+                      onTouchEnd={(e) => handleItemTouchEnd(item.id, e)}
+                      onTouchCancel={() => handleItemTouchCancel(item.id)}
                       className={`w-full flex items-center justify-between min-h-[48px] ${spacingClass} ${fontSizeClass} transition-colors select-none ${
                         idx > 0 ? "border-t border-border" : ""
                       } ${
@@ -607,7 +651,10 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
                         return (
                           <button
                             key={item.id}
-                            onClick={() => toggleCheck(item.id)}
+                            onClick={() => handleItemClick(item.id)}
+                            onTouchStart={(e) => handleItemTouchStart(item.id, e)}
+                            onTouchEnd={(e) => handleItemTouchEnd(item.id, e)}
+                            onTouchCancel={() => handleItemTouchCancel(item.id)}
                             className={`w-full flex items-center justify-between min-h-[48px] ${spacingClass} ${fontSizeClass} transition-colors border-t border-border select-none ${
                               checked
                                 ? "bg-success/10 text-success"
@@ -641,7 +688,10 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
                   return (
                     <button
                       key={item.id}
-                      onClick={() => toggleCheck(item.id)}
+                      onClick={() => handleItemClick(item.id)}
+                      onTouchStart={(e) => handleItemTouchStart(item.id, e)}
+                      onTouchEnd={(e) => handleItemTouchEnd(item.id, e)}
+                      onTouchCancel={() => handleItemTouchCancel(item.id)}
                       className={`w-full flex items-center justify-between min-h-[48px] ${spacingClass} ${fontSizeClass} transition-colors border-t border-border select-none ${
                         checked
                           ? "bg-success/10 text-success"

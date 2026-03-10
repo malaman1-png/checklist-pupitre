@@ -17,7 +17,7 @@ export function setAdminPassword(password: string) {
 }
 
 interface AdminRequest {
-  action: "insert" | "update" | "upsert" | "delete" | "deleteMatch" | "setPassword"
+  action: "insert" | "update" | "upsert" | "delete" | "deleteMatch" | "deleteAll" | "setPassword"
   table: string
   data?: any
   match?: Record<string, any>
@@ -64,7 +64,7 @@ export async function adminDelete(table: string, match: Record<string, any>) {
 }
 
 export async function adminDeleteAll(table: string) {
-  return adminApi({ action: "deleteAll" as any, table })
+  return adminApi({ action: "deleteAll", table })
 }
 
 export async function adminSetPassword(password: string) {

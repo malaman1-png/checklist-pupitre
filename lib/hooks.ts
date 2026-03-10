@@ -1,32 +1,31 @@
 import useSWR, { mutate as globalMutate } from "swr"
 import { createClient } from "@/lib/supabase/client"
+import { DEFAULT_TOUCH_TAP_SLOP_PX } from "@/lib/ui-settings"
 
 const supabase = createClient()
 
 // Generic fetcher for Supabase tables
-function fetcher<T>(key: string): Promise<T[]> {
+async function fetcher<T>(key: string): Promise<T[]> {
   const [table, orderCol, orderDir] = key.split("|")
   let query = supabase.from(table).select("*")
   if (orderCol) {
     query = query.order(orderCol, { ascending: orderDir !== "desc" })
   }
-  return query.then(({ data, error }) => {
-    if (error) throw error
-    return (data as T[]) || []
-  })
+  const { data, error } = await query
+  if (error) throw error
+  return (data as T[]) || []
 }
 
 // Fetcher with joins
-function fetcherWithJoin<T>(key: string): Promise<T[]> {
+async function fetcherWithJoin<T>(key: string): Promise<T[]> {
   const [table, selectStr, orderCol] = key.split("|")
   let query = supabase.from(table).select(selectStr || "*")
   if (orderCol) {
     query = query.order(orderCol)
   }
-  return query.then(({ data, error }) => {
-    if (error) throw error
-    return (data as T[]) || []
-  })
+  const { data, error } = await query
+  if (error) throw error
+  return (data as T[]) || []
 }
 
 export function useTypes() {
@@ -305,6 +304,7 @@ export function useSettings() {
           confetti_enabled: true,
           sound_enabled: true,
           auto_delete_days: 0,
+          touch_tap_slop_px: DEFAULT_TOUCH_TAP_SLOP_PX,
         })
         .select("*")
         .single()
@@ -316,6 +316,7 @@ export function useSettings() {
           confetti_enabled: true,
           sound_enabled: true,
           auto_delete_days: 0,
+          touch_tap_slop_px: DEFAULT_TOUCH_TAP_SLOP_PX,
         }
       }
       return newRow

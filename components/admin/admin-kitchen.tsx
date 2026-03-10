@@ -28,6 +28,7 @@ export function AdminKitchen({ onBack }: AdminKitchenProps) {
   const { data: modularActs } = useModularActs()
   const { data: materiel } = useMateriel()
   const { data: displayOrder } = useDisplayOrder()
+  const materielList = (materiel as any[]) || []
 
   // Load ALL act items (we'll filter by act later)
   // Source de vérité: fixed_act_items table (fixed_act_id, materiel_id, quantity)
@@ -628,7 +629,7 @@ export function AdminKitchen({ onBack }: AdminKitchenProps) {
                 {(sonItems as any[])?.map((item: any) => (
                   <div key={item.id} className="flex items-center gap-2 rounded bg-background/50 px-2 py-1.5">
                     <span className="flex-1 min-w-0 text-sm text-foreground truncate">
-                      {materiel?.find((m: any) => m.id === item.materiel_id)?.name || "?"}
+                      {materielList.find((m: any) => m.id === item.materiel_id)?.name || "?"}
                     </span>
                     <input
                       type="number"
@@ -713,7 +714,7 @@ export function AdminKitchen({ onBack }: AdminKitchenProps) {
                 {(lightItems as any[])?.map((item: any) => (
                   <div key={item.id} className="flex items-center gap-2 rounded bg-background/50 px-2 py-1.5">
                     <span className="flex-1 min-w-0 text-sm text-foreground truncate">
-                      {materiel?.find((m: any) => m.id === item.materiel_id)?.name || "?"}
+                      {materielList.find((m: any) => m.id === item.materiel_id)?.name || "?"}
                     </span>
                     <input
                       type="number"
@@ -842,7 +843,7 @@ export function AdminKitchen({ onBack }: AdminKitchenProps) {
                           {actMats.map((item: any) => (
                             <div key={item.id} className="flex items-center gap-1.5 rounded bg-muted/30 px-2 py-1.5">
                               <span className="flex-1 min-w-0 text-xs text-foreground truncate">
-                                {materiel?.find((m: any) => m.id === item.materiel_id)?.name || "?"}
+                                {materielList.find((m: any) => m.id === item.materiel_id)?.name || "?"}
                               </span>
                               <input
                                 type="number"

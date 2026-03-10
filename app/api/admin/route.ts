@@ -26,6 +26,9 @@ const ADMIN_TABLES = new Set([
   "act_version_items",
 ])
 
+const ADMIN_SECRETS_MISSING_MSG =
+  "La table admin_secrets n'existe pas en base. Execute le script SQL de migration securite."
+
 async function checkPassword(req: NextRequest): Promise<boolean> {
   const authHeader = req.headers.get("x-admin-password") || ""
   if (!authHeader) return false
@@ -34,12 +37,12 @@ async function checkPassword(req: NextRequest): Promise<boolean> {
   const envPassword = process.env.ADMIN_PASSWORD
   if (envPassword && authHeader === envPassword) return true
 
-  // 2) Optional DB password fallback (legacy / editable from Control Room)
-  // If the column doesn't exist yet, we silently ignore and rely on env password.
+  // 2) Optional DB password fallback (editable from Control Room)
+  // Stored in dedicated admin_secrets table, not in public settings.
   try {
     const supabase = createAdminClient()
     const { data, error } = await supabase
-      .from("settings")
+      .from("admin_secrets")
       .select("admin_password")
       .limit(1)
       .single()
@@ -93,31 +96,32 @@ export async function POST(req: NextRequest) {
         }
 
         const supabase = createAdminClient()
-        const { data: row } = await supabase.from("settings").select("id").limit(1).single()
-        if (!row?.id) {
-          return NextResponse.json({ error: "Ligne settings introuvable." }, { status: 500 })
-        }
+        const { data: row, error: rowErr } = await supabase
+          .from("admin_secrets")
+          .select("id")
+          .limit(1)
+          .maybeSingle()
 
-        const pwRes = await supabase
-          .from("settings")
-          .update({ admin_password: newPassword.trim() })
-          .eq("id", row.id)
-          .select()
-
-        if (pwRes.error) {
-          const msg = pwRes.error.message || ""
-          if (msg.includes("admin_password")) {
-            return NextResponse.json(
-              {
-                error:
-                  "Le champ admin_password n'existe pas en base. Execute le script SQL pour le re-creer.",
-              },
-              { status: 400 }
-            )
+        if (rowErr) {
+          const msg = rowErr.message || ""
+          if (msg.includes("admin_secrets")) {
+            return NextResponse.json({ error: ADMIN_SECRETS_MISSING_MSG }, { status: 400 })
           }
           return NextResponse.json({ error: msg }, { status: 500 })
         }
 
+        const pwRes = row?.id
+          ? await supabase
+              .from("admin_secrets")
+              .update({ admin_password: newPassword.trim(), updated_at: new Date().toISOString() })
+              .eq("id", row.id)
+              .select()
+          : await supabase
+              .from("admin_secrets")
+              .insert({ admin_password: newPassword.trim() })
+              .select()
+
+        if (pwRes.error) return NextResponse.json({ error: pwRes.error.message }, { status: 500 })
         return NextResponse.json({ ok: true })
       }
       case "ping": {

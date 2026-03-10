@@ -49,6 +49,7 @@ function HomeInner() {
   showPasswordModalRef.current = showPasswordModal
 
   const { data: settings } = useSettings()
+  const mobileBackConfirmEnabled = ((settings as any)?.mobile_back_confirm_enabled ?? true) as boolean
 
   // ---- Hydration ----
   useEffect(() => { setHydrated(true) }, [])
@@ -59,20 +60,38 @@ function HomeInner() {
     const days = (settings as any).auto_delete_days
     if (!days || days <= 0) return
 
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - days)
+    const runAutoDelete = async () => {
+      // Use server date when possible to avoid client clock skew deleting too much.
+      let now = new Date()
+      try {
+        const res = await fetch("/", { method: "HEAD", cache: "no-store" })
+        const serverDate = res.headers.get("date")
+        if (serverDate) {
+          const parsed = new Date(serverDate)
+          if (!Number.isNaN(parsed.getTime())) now = parsed
+        }
+      } catch {
+        // Fallback to local clock if server date is unavailable
+      }
 
-    supabase
-      .from("projects")
-      .delete()
-      .lt("created_at", cutoff.toISOString())
-      .then(({ error }) => {
-        if (!error) globalMutate("projects|created_at|desc")
-      })
+      const cutoff = new Date(now)
+      cutoff.setDate(cutoff.getDate() - days)
+
+      const { error } = await supabase
+        .from("projects")
+        .delete()
+        .lt("created_at", cutoff.toISOString())
+
+      if (!error) globalMutate("projects|created_at|desc")
+    }
+
+    void runAutoDelete()
   }, [settings])
 
   // ---- Android back button (history guard + popstate) ----
   useEffect(() => {
+    if (!mobileBackConfirmEnabled) return
+
     // Push a guard entry so pressing back doesn't leave the app
     window.history.pushState({ guard: true }, "")
 
@@ -109,7 +128,7 @@ function HomeInner() {
 
     window.addEventListener("popstate", handlePopstate)
     return () => window.removeEventListener("popstate", handlePopstate)
-  }, [])
+  }, [mobileBackConfirmEnabled])
 
   // ---- Auto-restore last checklist on mount ----
   useEffect(() => {

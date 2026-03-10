@@ -10,6 +10,8 @@
 
 @layer base {
   :root {
+    --font-body: "Avenir Next", "Segoe UI", "Helvetica Neue", "Arial", sans-serif;
+    --font-display: "Avenir Next", "Segoe UI", "Helvetica Neue", "Arial", sans-serif;
     --background: 223 31% 8%;
     --foreground: 210 25% 96%;
     --card: 224 24% 12%;

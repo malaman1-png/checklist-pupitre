@@ -1,16 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useSettings, globalMutate } from "@/lib/hooks"
 import { adminSetPassword, adminUpdate, setAdminPassword } from "@/lib/admin-api"
 import { AdminHeader } from "./admin-header"
 import { Loader2 } from "lucide-react"
+import {
+  DEFAULT_TOUCH_TAP_SLOP_PX,
+  MAX_TOUCH_TAP_SLOP_PX,
+  MIN_TOUCH_TAP_SLOP_PX,
+  clampTouchTapSlopPx,
+  getTouchTapSlopPxFromSettings,
+} from "@/lib/ui-settings"
 
 export function AdminSettings({ onBack }: { onBack: () => void }) {
   const { data: settings, isLoading } = useSettings()
   const [newPassword, setNewPassword] = useState("")
   const [passwordMsg, setPasswordMsg] = useState("")
   const [savingPassword, setSavingPassword] = useState(false)
+  const [touchTapSlopPxDraft, setTouchTapSlopPxDraft] = useState<number>(DEFAULT_TOUCH_TAP_SLOP_PX)
+  const [savingTouchTapSlop, setSavingTouchTapSlop] = useState(false)
 
   async function update(field: string, value: string | number | boolean) {
     if (!settings) return
@@ -39,6 +48,24 @@ export function AdminSettings({ onBack }: { onBack: () => void }) {
     setAdminPassword(next)
     setNewPassword("")
     setPasswordMsg("Mot de passe mis a jour.")
+  }
+
+  useEffect(() => {
+    if (!settings) return
+    setTouchTapSlopPxDraft(getTouchTapSlopPxFromSettings(settings))
+  }, [settings])
+
+  async function commitTapSlop() {
+    if (!settings || savingTouchTapSlop) return
+    const current = getTouchTapSlopPxFromSettings(settings)
+    const next = clampTouchTapSlopPx(touchTapSlopPxDraft)
+    if (next === current) return
+    setSavingTouchTapSlop(true)
+    try {
+      await update("touch_tap_slop_px", next)
+    } finally {
+      setSavingTouchTapSlop(false)
+    }
   }
 
   if (isLoading || !settings) {
@@ -98,6 +125,37 @@ export function AdminSettings({ onBack }: { onBack: () => void }) {
             className="h-5 w-5 accent-primary"
           />
         </label>
+
+        {/* Anti miss-clic (global setting) */}
+        <div className="rounded-lg border border-border bg-card p-4">
+          <label className="text-sm font-medium text-foreground block mb-1">
+            Anti miss-clic
+          </label>
+          <p className="text-xs text-muted-foreground mb-3">
+            Tolere un leger glissement du doigt pendant un tap. Ce reglage est global a tous les appareils.
+          </p>
+          <input
+            type="range"
+            min={MIN_TOUCH_TAP_SLOP_PX}
+            max={MAX_TOUCH_TAP_SLOP_PX}
+            step={1}
+            value={touchTapSlopPxDraft}
+            onChange={(e) => setTouchTapSlopPxDraft(clampTouchTapSlopPx(Number(e.target.value)))}
+            onPointerUp={() => { void commitTapSlop() }}
+            onBlur={() => { void commitTapSlop() }}
+            className="w-full accent-primary"
+          />
+          <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+            <span>Strict</span>
+            <span className="font-medium text-foreground">
+              {touchTapSlopPxDraft === 0 ? "Desactive" : `${touchTapSlopPxDraft}px`}
+            </span>
+            <span>Tolerant</span>
+          </div>
+          {savingTouchTapSlop && (
+            <p className="mt-2 text-xs text-muted-foreground">Enregistrement...</p>
+          )}
+        </div>
 
         {/* Admin password */}
         <div className="rounded-lg border border-border bg-card p-4">
