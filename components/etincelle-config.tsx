@@ -251,6 +251,8 @@ export function EtincelleConfig({ projectId, onBack, onGenerated }: EtincelleCon
   }
 
   const hasArtists = selectedArtistIds.length > 0 || customArtists.length > 0
+  const showSection2 = hasArtists
+  const showSection3 = hasArtists
   const isGenerateDisabled = !hasArtists || generating
   const sectionCardClass = "rounded-2xl border border-border/55 bg-card/45 p-4 shadow-lg shadow-black/10 backdrop-blur-sm"
   const selectedCardClass = "border-primary/45 bg-primary/10 ring-1 ring-primary/20"
@@ -346,7 +348,11 @@ export function EtincelleConfig({ projectId, onBack, onGenerated }: EtincelleCon
           )}
         </section>
 
-        <section className={sectionCardClass}>
+        <section
+          className={`${sectionCardClass} transition-all duration-500 ease-out ${
+            showSection2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none h-0 overflow-hidden"
+          }`}
+        >
           <h2 className="text-sm font-bold text-foreground mb-2">Technique</h2>
           <button
             onClick={() => setIncludeSound((s) => !s)}
@@ -362,7 +368,11 @@ export function EtincelleConfig({ projectId, onBack, onGenerated }: EtincelleCon
           </button>
         </section>
 
-        <section className={sectionCardClass}>
+        <section
+          className={`${sectionCardClass} transition-all duration-500 ease-out ${
+            showSection3 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none h-0 overflow-hidden"
+          }`}
+        >
           <h2 className="text-sm font-bold text-foreground mb-2">Version</h2>
           <div className="flex flex-col gap-2">
             {sortedVersions.map((version: any) => (
