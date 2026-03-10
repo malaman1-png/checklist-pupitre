@@ -69,6 +69,11 @@ function ChecklistCard({
     spectacle === "etincelle" && typeof project.name === "string" && project.name.toLowerCase().startsWith("etincelle ")
       ? project.name.slice("Etincelle ".length).split(" - ")[0]
       : null
+  const etincelleVersionCardLabel = etincelleVersionLabel
+    ? etincelleVersionLabel
+        .replace(/\bcourte\b/gi, "COURT")
+        .replace(/\blongue\b/gi, "LONG")
+    : null
 
   const dateStr = new Date(project.created_at).toLocaleDateString("fr-FR", {
     day: "numeric",
@@ -119,7 +124,7 @@ function ChecklistCard({
           <span className={`text-xs font-bold uppercase tracking-[0.22em] ${isEtincelle ? "text-amber-400" : "text-primary"}`}>
             {getSpectacleLabel(spectacle)}
             <span className={`ml-2 text-[11px] font-medium tracking-[0.08em] ${isEtincelle ? "text-amber-200/80" : "text-muted-foreground"}`}>
-              {spectacle === "etincelle" ? (etincelleVersionLabel || format) : format}
+              {spectacle === "etincelle" ? (etincelleVersionCardLabel || format) : format}
             </span>
           </span>
           <ProgressBadge projectId={project.id} />
@@ -302,8 +307,8 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
         <div className="rounded-2xl border border-border/55 bg-card/45 px-4 py-3 backdrop-blur-sm shadow-lg shadow-black/10">
           <div className="flex items-center justify-between">
             <span className="h-9 w-9" aria-hidden="true" />
-            <h1 className={`${headerTitleFont.className} max-w-[calc(100%-5.5rem)] bg-gradient-to-r from-cyan-300 via-primary to-fuchsia-300 bg-clip-text text-center text-[0.8rem] font-normal uppercase leading-tight tracking-[0.14em] text-transparent drop-shadow-[0_0_12px_rgba(56,189,248,0.35)] sm:text-[0.95rem]`}>
-              Checklist Generator BX4000
+            <h1 className={`${headerTitleFont.className} max-w-[calc(100%-5.5rem)] bg-gradient-to-r from-cyan-300 via-primary to-fuchsia-300 bg-clip-text text-center text-[0.98rem] font-normal uppercase leading-tight tracking-[0.14em] text-transparent drop-shadow-[0_0_12px_rgba(56,189,248,0.35)] sm:text-[1.12rem]`}>
+              Checklist Generator
             </h1>
             <button
               onClick={onControlRoom}

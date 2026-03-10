@@ -524,6 +524,7 @@ export function ProjectConfigPupitre({ projectId, onBack, onGenerated }: Project
   const hasArtists = selectedArtistIds.length > 0 || customArtists.length > 0
   const showSection2 = hasArtists
   const showSection3 = hasArtists // transport always has a default, so section 3 can appear with section 2
+  const isGenerateDisabled = !hasArtists || generating
 
   // Build sorted act list
   const actSections = (() => {
@@ -864,29 +865,32 @@ export function ProjectConfigPupitre({ projectId, onBack, onGenerated }: Project
       </div>
 
       {/* Error message & Generate button - inline at bottom of page */}
-      {hasArtists && (
-        <div className="px-4 mt-8 pb-10">
-          {genError && (
-            <div className="mb-4 rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              {genError}
-            </div>
+      <div className="px-4 mt-8 pb-10">
+        {genError && (
+          <div className="mb-4 rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {genError}
+          </div>
+        )}
+        {!hasArtists && (
+          <p className="mb-3 text-xs text-muted-foreground text-center">
+            Selectionne au moins un artiste pour activer la generation.
+          </p>
+        )}
+        <button
+          onClick={generateChecklist}
+          disabled={isGenerateDisabled}
+          className="cta-premium flex w-full items-center justify-center gap-3 rounded-2xl py-5 text-lg font-bold text-primary-foreground disabled:opacity-50"
+        >
+          {generating ? (
+            <Loader2 className="relative z-10 h-7 w-7 animate-spin" />
+          ) : (
+            <Sparkles className="relative z-10 h-7 w-7" />
           )}
-          <button
-            onClick={generateChecklist}
-            disabled={generating}
-            className="cta-premium flex w-full items-center justify-center gap-3 rounded-2xl py-5 text-lg font-bold text-primary-foreground disabled:opacity-50"
-          >
-            {generating ? (
-              <Loader2 className="relative z-10 h-7 w-7 animate-spin" />
-            ) : (
-              <Sparkles className="relative z-10 h-7 w-7" />
-            )}
-            <span className="relative z-10 tracking-[0.01em]">
-              {generating ? "Generation en cours..." : "Generer la checklist"}
-            </span>
-          </button>
-        </div>
-      )}
+          <span className="relative z-10 tracking-[0.01em]">
+            {generating ? "Generation en cours..." : "Generer la checklist"}
+          </span>
+        </button>
+      </div>
 
       <style jsx>{`
         @keyframes cfg-shake {
