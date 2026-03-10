@@ -17,14 +17,29 @@ export function AdminSettings({ onBack }: { onBack: () => void }) {
   const { data: settings, isLoading } = useSettings()
   const [newPassword, setNewPassword] = useState("")
   const [passwordMsg, setPasswordMsg] = useState("")
+  const [settingsMsg, setSettingsMsg] = useState("")
   const [savingPassword, setSavingPassword] = useState(false)
   const [touchTapSlopPxDraft, setTouchTapSlopPxDraft] = useState<number>(DEFAULT_TOUCH_TAP_SLOP_PX)
   const [savingTouchTapSlop, setSavingTouchTapSlop] = useState(false)
 
-  async function update(field: string, value: string | number | boolean) {
-    if (!settings) return
-    await adminUpdate("settings", { [field]: value }, { id: settings.id })
+  async function update(field: string, value: string | number | boolean): Promise<boolean> {
+    if (!settings) return false
+    const res = await adminUpdate("settings", { [field]: value }, { id: settings.id })
+    if (res.error) {
+      setSettingsMsg(
+        res.error === "Unauthorized"
+          ? "Session admin expiree. Reouvre la Control Room avec le mot de passe."
+          : res.error
+      )
+      if (res.error === "Unauthorized") {
+        setAdminPassword("")
+        try { localStorage.removeItem("cr_access_ts") } catch {}
+      }
+      return false
+    }
+    setSettingsMsg("")
     globalMutate("settings_singleton")
+    return true
   }
 
   async function handlePasswordChange() {
@@ -62,7 +77,8 @@ export function AdminSettings({ onBack }: { onBack: () => void }) {
     if (next === current) return
     setSavingTouchTapSlop(true)
     try {
-      await update("touch_tap_slop_px", next)
+      const ok = await update("touch_tap_slop_px", next)
+      if (!ok) setTouchTapSlopPxDraft(current)
     } finally {
       setSavingTouchTapSlop(false)
     }
@@ -142,6 +158,8 @@ export function AdminSettings({ onBack }: { onBack: () => void }) {
             value={touchTapSlopPxDraft}
             onChange={(e) => setTouchTapSlopPxDraft(clampTouchTapSlopPx(Number(e.target.value)))}
             onPointerUp={() => { void commitTapSlop() }}
+            onMouseUp={() => { void commitTapSlop() }}
+            onTouchEnd={() => { void commitTapSlop() }}
             onBlur={() => { void commitTapSlop() }}
             className="w-full accent-primary"
           />
@@ -156,6 +174,11 @@ export function AdminSettings({ onBack }: { onBack: () => void }) {
             <p className="mt-2 text-xs text-muted-foreground">Enregistrement...</p>
           )}
         </div>
+        {!!settingsMsg && (
+          <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            {settingsMsg}
+          </p>
+        )}
 
         {/* Admin password */}
         <div className="rounded-lg border border-border bg-card p-4">

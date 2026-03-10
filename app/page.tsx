@@ -215,6 +215,24 @@ function HomeInner() {
     } catch { return false }
   }, [])
 
+  async function isStoredPasswordStillValid(): Promise<boolean> {
+    try {
+      const stored = localStorage.getItem("admin_password") || ""
+      if (!stored) return false
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": stored,
+        },
+        body: JSON.stringify({ action: "ping", table: "settings" }),
+      })
+      return res.ok
+    } catch {
+      return false
+    }
+  }
+
   function openProject(projectId: string, generated: boolean) {
     if (generated) {
       navigateTo({ type: "checklist", projectId })
@@ -223,15 +241,23 @@ function HomeInner() {
     }
   }
 
-  function handleControlRoomClick() {
+  async function handleControlRoomClick() {
     if (tab === "base") return
     if (isSessionValid()) {
-      setTab("base")
-      return
+      const stillValid = await isStoredPasswordStillValid()
+      if (stillValid) {
+        setTab("base")
+        return
+      }
+      try {
+        localStorage.removeItem(SESSION_KEY)
+        localStorage.removeItem("admin_password")
+      } catch {}
     }
     setShowPasswordModal(true)
     setPasswordInput("")
     setPasswordError(false)
+    setPasswordErrorMsg("")
   }
 
   async function handlePasswordSubmit() {

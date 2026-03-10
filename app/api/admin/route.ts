@@ -33,11 +33,7 @@ async function checkPassword(req: NextRequest): Promise<boolean> {
   const authHeader = req.headers.get("x-admin-password") || ""
   if (!authHeader) return false
 
-  // 1) Primary password from server env (recommended for production)
-  const envPassword = process.env.ADMIN_PASSWORD
-  if (envPassword && authHeader === envPassword) return true
-
-  // 2) Optional DB password fallback (editable from Control Room)
+  // 1) Primary password from DB (single source of truth across devices)
   // Stored in dedicated admin_secrets table, not in public settings.
   try {
     const supabase = createAdminClient()
@@ -47,12 +43,17 @@ async function checkPassword(req: NextRequest): Promise<boolean> {
       .limit(1)
       .single()
 
-    if (!error && data?.admin_password && authHeader === data.admin_password) {
-      return true
+    // If DB secret exists, enforce it strictly and ignore env fallback.
+    if (!error && data?.admin_password) {
+      return authHeader === data.admin_password
     }
   } catch {
-    // Ignore and fallback to false
+    // Ignore and fallback to env below
   }
+
+  // 2) Env password fallback only when DB secret is unavailable.
+  const envPassword = process.env.ADMIN_PASSWORD
+  if (envPassword && authHeader === envPassword) return true
 
   return false
 }
