@@ -8,6 +8,7 @@ node_modules/
 .pnpm-store/
 .next/
 .env*.local
+.env.preprod
 .DS_Store
 .vercel
 tsconfig.tsbuildinfo

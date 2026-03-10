@@ -58,6 +58,17 @@ export function useLightItems() {
   })
 }
 
+export function useEtincelleSoundItems() {
+  return useSWR("etincelle_sound_items_with_materiel", async () => {
+    const { data, error } = await supabase
+      .from("etincelle_sound_items")
+      .select("*, materiel(*, types:type_id(*))")
+      .order("created_at")
+    if (error) throw error
+    return data || []
+  })
+}
+
 export function useFixedActs() {
   return useSWR("fixed_acts|name|asc", fetcher)
 }
@@ -183,6 +194,18 @@ export function useArtistItems(artistId?: string) {
   })
 }
 
+export function useEtincelleArtistItems(artistId?: string) {
+  const key = artistId ? `etincelle_artist_items_${artistId}` : null
+  return useSWR(key, async () => {
+    const { data, error } = await supabase
+      .from("etincelle_artist_items")
+      .select("*, materiel(*)")
+      .eq("artist_id", artistId!)
+    if (error) throw error
+    return data || []
+  })
+}
+
 export function useTransportExclusions() {
   return useSWR("transport_excl", async () => {
     const { data, error } = await supabase
@@ -281,6 +304,23 @@ export function useActVersionItems(versionId?: string) {
       .from("act_version_items")
       .select("*, materiel(*)")
       .eq("version_id", versionId!)
+    if (error) throw error
+    return data || []
+  })
+}
+
+export function useEtincelleVersions() {
+  return useSWR("etincelle_versions|sort_order|asc", fetcher)
+}
+
+export function useEtincelleVersionItems(versionId?: string) {
+  const key = versionId ? `etincelle_version_items_${versionId}` : null
+  return useSWR(key, async () => {
+    const { data, error } = await supabase
+      .from("etincelle_version_items")
+      .select("*, materiel(*)")
+      .eq("version_id", versionId!)
+      .order("created_at")
     if (error) throw error
     return data || []
   })

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import type { TouchEvent } from "react"
 import { useChecklistItems, useSettings, useProject, useArtists, useProjectFixedActs, useProjectModularActs, useRealtimeChecklist, supabase, globalMutate } from "@/lib/hooks"
-import { getFormatLabel } from "@/lib/format-utils"
+import { getFormatLabel, getSpectacleLabel, normalizeSpectacle } from "@/lib/format-utils"
 import { ArrowLeft, Loader2, Check, Pencil } from "lucide-react"
 import { getTouchTapSlopPxFromSettings } from "@/lib/ui-settings"
 
@@ -385,6 +385,19 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
   const checkedCount = items
     ? (items as any[]).filter((i: any) => isChecked(i.id)).length
     : 0
+  const selIds: string[] = project?.selected_artist_ids || []
+  const customs: string[] = project?.custom_artists || []
+  const totalArtists = selIds.length + customs.length
+  const spectacle = normalizeSpectacle(project?.spectacle)
+  const etincelleVersionLabel =
+    spectacle === "etincelle" && typeof project?.name === "string" && project.name.toLowerCase().startsWith("etincelle ")
+      ? project.name.slice("Etincelle ".length).split(" - ")[0]
+      : null
+  const primaryLabel = spectacle === "etincelle" ? (etincelleVersionLabel || "Version") : getFormatLabel(totalArtists)
+  const artistMapById: Record<string, any> = {}
+  if (artists) {
+    for (const artist of artists as any[]) artistMapById[artist.id] = artist
+  }
 
   return (
     <div className="px-4 pb-6 pt-3" style={{ touchAction: "manipulation" }}>
@@ -400,42 +413,36 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1 min-w-0">
-            {(() => {
-              const selIds: string[] = project?.selected_artist_ids || []
-              const customs: string[] = project?.custom_artists || []
-              const total = selIds.length + customs.length
-              const artistMap: Record<string, any> = {}
-              if (artists) { for (const a of artists as any[]) { artistMap[a.id] = a } }
-              return (
-                <>
-                  <p className="text-xs font-semibold text-primary">{getFormatLabel(total)}</p>
-                  <div className="flex flex-wrap gap-1 mt-0.5">
-                    {selIds.map((id: string) => {
-                      const artist = artistMap[id]
-                      const color = artist?.color || "#888888"
-                      return (
-                        <span
-                          key={id}
-                          className="rounded-full px-2 py-0.5 text-xs font-medium"
-                          style={{ backgroundColor: `${color}26`, color }}
-                        >
-                          {artist?.name || "?"}
-                        </span>
-                      )
-                    })}
-                    {customs.map((name: string) => (
-                      <span
-                        key={name}
-                        className="rounded-full px-2 py-0.5 text-xs font-medium"
-                        style={{ backgroundColor: "#88888826", color: "#888888" }}
-                      >
-                        {name}
-                      </span>
-                    ))}
-                  </div>
-                </>
-              )
-            })()}
+            <p className="text-xs font-semibold text-primary">
+              {getSpectacleLabel(spectacle)}
+              <span className="ml-2 text-[11px] font-medium tracking-[0.08em] text-muted-foreground">
+                {primaryLabel}
+              </span>
+            </p>
+            <div className="flex flex-wrap gap-1 mt-0.5">
+              {selIds.map((id: string) => {
+                const artist = artistMapById[id]
+                const color = artist?.color || "#888888"
+                return (
+                  <span
+                    key={id}
+                    className="rounded-full px-2 py-0.5 text-xs font-medium"
+                    style={{ backgroundColor: `${color}26`, color }}
+                  >
+                    {artist?.name || "?"}
+                  </span>
+                )
+              })}
+              {customs.map((name: string) => (
+                <span
+                  key={name}
+                  className="rounded-full px-2 py-0.5 text-xs font-medium"
+                  style={{ backgroundColor: "#88888826", color: "#888888" }}
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
               {checkedCount} / {totalItems}
             </p>
@@ -452,6 +459,11 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
       {/* Recap (always visible) + Edit button */}
       {project && (
         <div className="mb-3 rounded-2xl border border-border/55 bg-card/45 p-3 backdrop-blur-sm flex flex-wrap items-center gap-1.5">
+          {spectacle === "etincelle" && (
+            <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-primary">
+              Etincelle {etincelleVersionLabel || "Version"}
+            </span>
+          )}
           {project.include_son && (
             <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[11px] font-semibold text-blue-500">
               {(settings as any)?.label_son || "SON"}

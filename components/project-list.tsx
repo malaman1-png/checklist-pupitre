@@ -4,7 +4,7 @@ import React from "react"
 import { useState } from "react"
 import { useProjects, useArtists, useRealtimeProjects, useChecklistItems, useSettings, supabase, globalMutate } from "@/lib/hooks"
 import { Plus, Trash2, Loader2, Pencil, ClipboardList, Settings } from "lucide-react"
-import { getFormatLabel } from "@/lib/format-utils"
+import { getFormatLabel, getSpectacleLabel, normalizeSpectacle, type SpectacleKind } from "@/lib/format-utils"
 
 /* ---- Invisible preloader: triggers SWR fetch so data is cached for offline ---- */
 function PreloadChecklist({ projectId }: { projectId: string }) {
@@ -60,7 +60,12 @@ function ChecklistCard({
   const selIds: string[] = project.selected_artist_ids || []
   const customs: string[] = project.custom_artists || []
   const total = selIds.length + customs.length
-  const format = getFormatLabel(total)
+  const spectacle = normalizeSpectacle(project.spectacle)
+  const format = spectacle === "etincelle" ? "Version" : getFormatLabel(total)
+  const etincelleVersionLabel =
+    spectacle === "etincelle" && typeof project.name === "string" && project.name.toLowerCase().startsWith("etincelle ")
+      ? project.name.slice("Etincelle ".length).split(" - ")[0]
+      : null
 
   const dateStr = new Date(project.created_at).toLocaleDateString("fr-FR", {
     day: "numeric",
@@ -100,7 +105,12 @@ function ChecklistCard({
       >
         {/* Top row: format + progress */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold uppercase tracking-[0.22em] text-primary">{format}</span>
+          <span className="text-xs font-bold uppercase tracking-[0.22em] text-primary">
+            {getSpectacleLabel(spectacle)}
+            <span className="ml-2 text-[11px] font-medium tracking-[0.08em] text-muted-foreground">
+              {spectacle === "etincelle" ? (etincelleVersionLabel || format) : format}
+            </span>
+          </span>
           <ProgressBadge projectId={project.id} />
         </div>
 
@@ -178,6 +188,9 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
   const { data: artists } = useArtists()
   const { data: settings } = useSettings()
   const [creating, setCreating] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [newSpectacle, setNewSpectacle] = useState<SpectacleKind>("pupitre")
+  const [createError, setCreateError] = useState<string | null>(null)
   const autoDeleteDays = (settings as any)?.auto_delete_days ?? 0
 
   useRealtimeProjects()
@@ -191,15 +204,50 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
 
   const generatedProjects = projects?.filter((p: any) => p.generated) || []
 
+  function isSchemaMissingForSpectacle(message?: string | null) {
+    if (!message) return false
+    const msg = message.toLowerCase()
+    return msg.includes("spectacle") || msg.includes("etincelle_version_id") || msg.includes("schema cache")
+  }
+
   async function handleNew() {
     setCreating(true)
-    const { data: newProject } = await supabase
+    setCreateError(null)
+
+    const payload = {
+      spectacle: newSpectacle,
+      etincelle_version_id: null,
+    }
+
+    let { data: newProject, error } = await supabase
       .from("projects")
-      .insert({})
+      .insert(payload)
       .select()
       .single()
+
+    if (error && isSchemaMissingForSpectacle(error.message)) {
+      const fallback = await supabase
+        .from("projects")
+        .insert({})
+        .select()
+        .single()
+      newProject = fallback.data
+      error = fallback.error
+
+      if (!fallback.error && newSpectacle === "etincelle") {
+        window.alert("Migration SQL Etincelle manquante. Checklist creee en mode Pupitre.")
+      }
+    }
+
+    if (error) {
+      setCreateError(error.message || "Creation impossible.")
+      setCreating(false)
+      return
+    }
+
     globalMutate("projects|created_at|desc")
     setCreating(false)
+    setShowCreateModal(false)
     if (newProject) onNew(newProject.id)
   }
 
@@ -306,7 +354,11 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
       {/* Sticky bottom button - always visible */}
       <div className="fixed bottom-0 inset-x-0 p-4 pb-6 bg-gradient-to-t from-background via-background to-transparent z-40">
         <button
-          onClick={handleNew}
+          onClick={() => {
+            setCreateError(null)
+            setNewSpectacle("pupitre")
+            setShowCreateModal(true)
+          }}
           disabled={creating}
           className="cta-premium flex w-full items-center justify-center gap-3 rounded-2xl py-5 text-lg font-bold text-primary-foreground disabled:opacity-50"
         >
@@ -314,6 +366,65 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
           <span className="relative z-10 tracking-[0.01em]">Nouvelle checklist</span>
         </button>
       </div>
+
+      {showCreateModal && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-4 sm:items-center">
+          <div className="w-full max-w-md rounded-2xl border border-border/60 bg-card/95 p-4 shadow-2xl shadow-black/35 backdrop-blur">
+            <h2 className="text-base font-semibold text-foreground">Nouveau spectacle</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Choisis d'abord le spectacle a generer.</p>
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setNewSpectacle("pupitre")}
+                className={`rounded-xl border px-3 py-3 text-left transition-all ${
+                  newSpectacle === "pupitre"
+                    ? "border-primary/45 bg-primary/10 ring-1 ring-primary/25"
+                    : "border-border/60 bg-secondary/40 hover:border-muted-foreground/45"
+                }`}
+              >
+                <p className="text-sm font-semibold text-foreground">Pupitre</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">Workflow complet actuel</p>
+              </button>
+              <button
+                onClick={() => setNewSpectacle("etincelle")}
+                className={`rounded-xl border px-3 py-3 text-left transition-all ${
+                  newSpectacle === "etincelle"
+                    ? "border-primary/45 bg-primary/10 ring-1 ring-primary/25"
+                    : "border-border/60 bg-secondary/40 hover:border-muted-foreground/45"
+                }`}
+              >
+                <p className="text-sm font-semibold text-foreground">Etincelle</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">Artistes + sound system + version</p>
+              </button>
+            </div>
+
+            {createError && (
+              <p className="mt-3 rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                {createError}
+              </p>
+            )}
+
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                onClick={() => {
+                  if (creating) return
+                  setShowCreateModal(false)
+                }}
+                className="rounded-xl border border-border/60 bg-secondary/45 px-4 py-2 text-sm text-foreground hover:bg-secondary/70 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleNew}
+                disabled={creating}
+                className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+              >
+                {creating ? "Creation..." : "Continuer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -11,9 +11,19 @@ const FORMAT_LABELS: Record<number, string> = {
   10: "Decuor",
 }
 
+export type SpectacleKind = "pupitre" | "etincelle"
+
 export function getFormatLabel(count: number): string {
   if (count <= 0) return "Checklist"
   return FORMAT_LABELS[count] || `${count}-tuor`
+}
+
+export function normalizeSpectacle(value: unknown): SpectacleKind {
+  return value === "etincelle" ? "etincelle" : "pupitre"
+}
+
+export function getSpectacleLabel(value: unknown): string {
+  return normalizeSpectacle(value) === "etincelle" ? "Etincelle" : "Pupitre"
 }
 
 export function buildChecklistTitle(

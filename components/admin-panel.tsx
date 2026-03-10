@@ -8,6 +8,7 @@ import { AdminArtists } from "@/components/admin/admin-artists"
 import { AdminAlwaysItems } from "@/components/admin/admin-always-items"
 import { AdminTransport } from "@/components/admin/admin-transport"
 import { AdminKitchen } from "@/components/admin/admin-kitchen"
+import { AdminEtincelle } from "@/components/admin/admin-etincelle"
 import {
   Palette,
   Package,
@@ -16,6 +17,7 @@ import {
   PackageCheck,
   Train,
   ChefHat,
+  Sparkles,
 } from "lucide-react"
 
 type AdminSection =
@@ -30,6 +32,7 @@ type AdminSection =
   | "artists"
   | "always"
   | "transport"
+  | "etincelle"
   | "display_order"
   | "settings"
 
@@ -38,6 +41,7 @@ const sections = [
   { key: "types" as const, label: "Types", icon: Palette, desc: "Categories et couleurs" },
   { key: "materiel" as const, label: "Materiel", icon: Package, desc: "Objets et equipements" },
   { key: "artists" as const, label: "Artistes", icon: Users, desc: "Profils et objets personnalises" },
+  { key: "etincelle" as const, label: "Etincelle", icon: Sparkles, desc: "Versions + Sound system + artistes specifiques" },
   { key: "always" as const, label: "Materiel pris d'office", icon: PackageCheck, desc: "Inclus dans toutes les checklists" },
   { key: "transport" as const, label: "Transport TRAIN", icon: Train, desc: "Exclusions, remplacements, ajouts en mode train" },
   { key: "settings" as const, label: "Reglages", icon: SlidersHorizontal, desc: "Preferences de l'app" },
@@ -92,6 +96,7 @@ export function AdminPanel() {
       {section === "types" && <AdminTypes onBack={onBack} />}
       {section === "materiel" && <AdminMateriel onBack={onBack} />}
       {section === "artists" && <AdminArtists onBack={onBack} />}
+      {section === "etincelle" && <AdminEtincelle onBack={onBack} />}
       {section === "always" && <AdminAlwaysItems onBack={onBack} />}
       {section === "transport" && <AdminTransport onBack={onBack} />}
       {section === "settings" && <AdminSettings onBack={onBack} />}

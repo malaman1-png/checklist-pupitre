@@ -24,6 +24,10 @@ const ADMIN_TABLES = new Set([
   "transport_act_replacements",
   "act_versions",
   "act_version_items",
+  "etincelle_versions",
+  "etincelle_version_items",
+  "etincelle_sound_items",
+  "etincelle_artist_items",
 ])
 
 const ADMIN_SECRETS_MISSING_MSG =
