@@ -118,7 +118,7 @@ export function AdminSettings({ onBack }: { onBack: () => void }) {
         <label className="flex items-center justify-between rounded-lg border border-border bg-card p-4 cursor-pointer">
           <div>
             <p className="text-sm font-medium text-foreground">Son</p>
-            <p className="text-xs text-muted-foreground">{"\"TINDIIIN\" kitsch a la fin"}</p>
+            <p className="text-xs text-muted-foreground">Son de celebration quand la checklist est complete</p>
           </div>
           <input
             type="checkbox"

@@ -147,54 +147,15 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
       }
 
       if (settings.sound_enabled) {
-        try {
-          // Son kitsch style Windows 98/XP "TINDIIIIIN"
-          const ctx = new AudioContext()
-          const t = ctx.currentTime
-
-          function playNote(freq: number, start: number, dur: number, vol: number) {
-            const osc1 = ctx.createOscillator()
-            const g1 = ctx.createGain()
-            osc1.type = "sine"
-            osc1.frequency.setValueAtTime(freq, t + start)
-            g1.gain.setValueAtTime(vol, t + start)
-            g1.gain.exponentialRampToValueAtTime(0.001, t + start + dur)
-            osc1.connect(g1)
-            g1.connect(ctx.destination)
-            osc1.start(t + start)
-            osc1.stop(t + start + dur)
-
-            const osc2 = ctx.createOscillator()
-            const g2 = ctx.createGain()
-            osc2.type = "sine"
-            osc2.frequency.setValueAtTime(freq * 2, t + start)
-            g2.gain.setValueAtTime(vol * 0.3, t + start)
-            g2.gain.exponentialRampToValueAtTime(0.001, t + start + dur * 0.7)
-            osc2.connect(g2)
-            g2.connect(ctx.destination)
-            osc2.start(t + start)
-            osc2.stop(t + start + dur)
-
-            const osc3 = ctx.createOscillator()
-            const g3 = ctx.createGain()
-            osc3.type = "triangle"
-            osc3.frequency.setValueAtTime(freq * 3, t + start)
-            g3.gain.setValueAtTime(vol * 0.1, t + start)
-            g3.gain.exponentialRampToValueAtTime(0.001, t + start + dur * 0.5)
-            osc3.connect(g3)
-            g3.connect(ctx.destination)
-            osc3.start(t + start)
-            osc3.stop(t + start + dur)
+        const audio = audioRef.current
+        if (audio) {
+          audio.currentTime = 0
+          const playPromise = audio.play()
+          if (playPromise) {
+            playPromise.catch(() => {
+              // Ignore autoplay/device audio restrictions.
+            })
           }
-
-          // Arpege D majeur bien ringard
-          playNote(587, 0, 0.5, 0.25)
-          playNote(740, 0.12, 0.5, 0.28)
-          playNote(880, 0.24, 0.6, 0.30)
-          playNote(1175, 0.36, 1.0, 0.35)
-
-        } catch {
-          // Audio not supported
         }
       }
     }
@@ -401,7 +362,7 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
 
   return (
     <div className="px-4 pb-6 pt-3" style={{ touchAction: "manipulation" }}>
-      <audio ref={audioRef} />
+      <audio ref={audioRef} preload="auto" src="/sounds/checklist-complete.mp3" />
 
       <header className={`sticky top-2 z-20 mb-4 rounded-2xl border p-3 shadow-lg shadow-black/10 backdrop-blur-sm ${
         spectacle === "etincelle"
