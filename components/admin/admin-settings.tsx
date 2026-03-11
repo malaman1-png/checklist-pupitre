@@ -103,8 +103,8 @@ export function AdminSettings({ onBack }: { onBack: () => void }) {
         {/* Confetti */}
         <label className="flex items-center justify-between rounded-lg border border-border bg-card p-4 cursor-pointer">
           <div>
-            <p className="text-sm font-medium text-foreground">Confettis</p>
-            <p className="text-xs text-muted-foreground">Animation quand tout est coche</p>
+            <p className="text-sm font-medium text-foreground">Confettis + caca</p>
+            <p className="text-xs text-muted-foreground">Canon depuis le bas avec un peu de 💩</p>
           </div>
           <input
             type="checkbox"

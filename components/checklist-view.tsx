@@ -14,6 +14,204 @@ interface ChecklistViewProps {
   fontLevel?: 1 | 2 | 3
 }
 
+function launchPoopBurstFallback() {
+  if (typeof window === "undefined" || typeof document === "undefined") return
+
+  const launchers = [
+    { x: 0.18, count: 5, angleDeg: -68, spreadDeg: 34 },
+    { x: 0.5, count: 6, angleDeg: -90, spreadDeg: 26 },
+    { x: 0.82, count: 5, angleDeg: -112, spreadDeg: 34 },
+  ]
+
+  type Particle = {
+    el: HTMLSpanElement
+    originX: number
+    originY: number
+    vx: number
+    vy: number
+    gravity: number
+    life: number
+    start: number
+    spin: number
+    wobbleAmp: number
+    wobbleFreq: number
+    wobblePhase: number
+  }
+
+  const particles: Particle[] = []
+
+  for (const launcher of launchers) {
+    for (let i = 0; i < launcher.count; i++) {
+      const particle = document.createElement("span")
+      particle.textContent = "💩"
+
+      const originX = window.innerWidth * launcher.x + (Math.random() - 0.5) * 28
+      const originY = window.innerHeight * 0.94 + Math.random() * 10
+
+      Object.assign(particle.style, {
+        position: "fixed",
+        left: `${originX}px`,
+        top: `${originY}px`,
+        transform: "translate(-50%, -50%)",
+        pointerEvents: "none",
+        userSelect: "none",
+        zIndex: "80",
+        fontSize: `${16 + Math.random() * 12}px`,
+        filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.35))",
+        willChange: "transform, opacity",
+      })
+
+      document.body.appendChild(particle)
+
+      const baseAngle = (launcher.angleDeg * Math.PI) / 180
+      const spreadRad = (launcher.spreadDeg * Math.PI) / 180
+      const angle = baseAngle + (Math.random() - 0.5) * spreadRad
+      const speed = 430 + Math.random() * 140 // px/s
+      const vx = Math.cos(angle) * speed
+      const vy = Math.sin(angle) * speed
+
+      particles.push({
+        el: particle,
+        originX,
+        originY,
+        vx,
+        vy,
+        gravity: 760 + Math.random() * 170,
+        life: 1750 + Math.random() * 450,
+        start: performance.now(),
+        spin: (Math.random() - 0.5) * 250,
+        wobbleAmp: 1 + Math.random() * 2.5,
+        wobbleFreq: 4.5 + Math.random() * 2.5,
+        wobblePhase: Math.random() * Math.PI * 2,
+      })
+    }
+  }
+
+  const tick = (now: number) => {
+    let activeCount = 0
+
+    for (const p of particles) {
+      const elapsed = now - p.start
+      if (elapsed >= p.life) {
+        p.el.remove()
+        continue
+      }
+
+      activeCount++
+      const t = elapsed / 1000
+
+      const x = p.originX + p.vx * t + Math.sin(t * p.wobbleFreq + p.wobblePhase) * p.wobbleAmp
+      const y = p.originY + p.vy * t + 0.5 * p.gravity * t * t
+      const fade = elapsed / p.life
+      const opacity = fade < 0.72 ? 1 : Math.max(0, 1 - (fade - 0.72) / 0.28)
+      const rotate = p.spin * t
+
+      p.el.style.transform = `translate(-50%, -50%) translate(${x - p.originX}px, ${y - p.originY}px) rotate(${rotate}deg)`
+      p.el.style.opacity = String(opacity)
+    }
+
+    if (activeCount > 0) {
+      window.requestAnimationFrame(tick)
+    }
+  }
+
+  if (particles.length > 0) {
+    window.requestAnimationFrame(tick)
+  }
+}
+
+function launchCelebrationMix() {
+  import("canvas-confetti")
+    .then((mod) => {
+      const confetti = mod.default
+      const palette = ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#f8fafc"]
+      const base = {
+        spread: 74,
+        startVelocity: 42,
+        ticks: 220,
+        gravity: 1.05,
+        scalar: 0.92,
+        colors: palette,
+      }
+
+      const emitConfettiCannons = () => {
+        confetti({
+          ...base,
+          particleCount: 42,
+          angle: 72,
+          drift: 0.22,
+          origin: { x: 0.18, y: 0.95 },
+        })
+
+        confetti({
+          ...base,
+          particleCount: 42,
+          angle: 108,
+          drift: -0.22,
+          origin: { x: 0.82, y: 0.95 },
+        })
+
+        setTimeout(() => {
+          confetti({
+            ...base,
+            particleCount: 18,
+            spread: 92,
+            startVelocity: 36,
+            gravity: 1.12,
+            origin: { x: 0.5, y: 0.92 },
+          })
+        }, 120)
+      }
+
+      emitConfettiCannons()
+      // Reliable poop layer across all browsers/devices.
+      launchPoopBurstFallback()
+
+      const shapeFromText = (confetti as any).shapeFromText
+      if (typeof shapeFromText === "function") {
+        const poopShape = shapeFromText({ text: "💩", scalar: 1.8 })
+        const poopBase = {
+          spread: 76,
+          startVelocity: 43,
+          ticks: 220,
+          gravity: 1.05,
+          scalar: 0.92,
+          shapes: [poopShape],
+        }
+
+        confetti({
+          ...poopBase,
+          particleCount: 8,
+          angle: 72,
+          drift: 0.22,
+          origin: { x: 0.18, y: 0.95 },
+        })
+
+        confetti({
+          ...poopBase,
+          particleCount: 8,
+          angle: 108,
+          drift: -0.22,
+          origin: { x: 0.82, y: 0.95 },
+        })
+
+        setTimeout(() => {
+          confetti({
+            ...poopBase,
+            particleCount: 5,
+            spread: 88,
+            startVelocity: 35,
+            gravity: 1.1,
+            origin: { x: 0.5, y: 0.92 },
+          })
+        }, 120)
+      }
+    })
+    .catch(() => {
+      launchPoopBurstFallback()
+    })
+}
+
 // Local cache for offline resilience
 function getLocalChecks(projectId: string): Record<string, boolean> {
   if (typeof window === "undefined") return {}
@@ -135,15 +333,7 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
       setCelebrated(true)
 
       if (settings.confetti_enabled) {
-        import("canvas-confetti").then((mod) => {
-          const confetti = mod.default
-          confetti({
-            particleCount: 150,
-            spread: 80,
-            origin: { y: 0.6 },
-            colors: ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"],
-          })
-        })
+        launchCelebrationMix()
       }
 
       if (settings.sound_enabled) {
