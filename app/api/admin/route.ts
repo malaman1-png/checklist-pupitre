@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import crypto from "node:crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 // Allowed admin tables (whitelist to prevent abuse)
@@ -33,6 +34,33 @@ const ADMIN_TABLES = new Set([
 const ADMIN_SECRETS_MISSING_MSG =
   "La table admin_secrets n'existe pas en base. Execute le script SQL de migration securite."
 
+const PASSWORD_HASH_PREFIX = "scrypt"
+const SCRYPT_KEYLEN = 64
+
+function secureEqual(a: string, b: string): boolean {
+  const aBuf = Buffer.from(a, "utf8")
+  const bBuf = Buffer.from(b, "utf8")
+  if (aBuf.length !== bBuf.length) return false
+  return crypto.timingSafeEqual(aBuf, bBuf)
+}
+
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString("base64")
+  const derived = crypto.scryptSync(password, salt, SCRYPT_KEYLEN).toString("base64")
+  return `${PASSWORD_HASH_PREFIX}$${salt}$${derived}`
+}
+
+function verifyPassword(password: string, storedValue: string): boolean {
+  const parts = storedValue.split("$")
+  if (parts.length === 3 && parts[0] === PASSWORD_HASH_PREFIX) {
+    const [, salt, digest] = parts
+    const derived = crypto.scryptSync(password, salt, SCRYPT_KEYLEN).toString("base64")
+    return secureEqual(derived, digest)
+  }
+  // Legacy clear-text fallback for older rows.
+  return secureEqual(password, storedValue)
+}
+
 async function checkPassword(req: NextRequest): Promise<boolean> {
   const authHeader = req.headers.get("x-admin-password") || ""
   if (!authHeader) return false
@@ -43,13 +71,21 @@ async function checkPassword(req: NextRequest): Promise<boolean> {
     const supabase = createAdminClient()
     const { data, error } = await supabase
       .from("admin_secrets")
-      .select("admin_password")
+      .select("id, admin_password")
       .limit(1)
       .single()
 
     // If DB secret exists, enforce it strictly and ignore env fallback.
     if (!error && data?.admin_password) {
-      return authHeader === data.admin_password
+      const ok = verifyPassword(authHeader, data.admin_password)
+      if (ok && !data.admin_password.startsWith(`${PASSWORD_HASH_PREFIX}$`)) {
+        // Transparent upgrade of legacy clear-text secret.
+        await supabase
+          .from("admin_secrets")
+          .update({ admin_password: hashPassword(authHeader), updated_at: new Date().toISOString() })
+          .eq("id", data.id)
+      }
+      return ok
     }
   } catch {
     // Ignore and fallback to env below
@@ -118,12 +154,12 @@ export async function POST(req: NextRequest) {
         const pwRes = row?.id
           ? await supabase
               .from("admin_secrets")
-              .update({ admin_password: newPassword.trim(), updated_at: new Date().toISOString() })
+              .update({ admin_password: hashPassword(newPassword.trim()), updated_at: new Date().toISOString() })
               .eq("id", row.id)
               .select()
           : await supabase
               .from("admin_secrets")
-              .insert({ admin_password: newPassword.trim() })
+              .insert({ admin_password: hashPassword(newPassword.trim()) })
               .select()
 
         if (pwRes.error) return NextResponse.json({ error: pwRes.error.message }, { status: 500 })

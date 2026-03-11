@@ -161,10 +161,10 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
     }
   }, [allChecked, celebrated, settings])
 
-  // Reset celebration if items change
+  // Allow replay when user leaves 100% then returns to 100%.
   useEffect(() => {
-    setCelebrated(false)
-  }, [items?.length])
+    if (!allChecked) setCelebrated(false)
+  }, [allChecked])
 
   // Debounce rapid taps: track last toggle per item to prevent double-fires
   const lastToggleRef = useRef<Record<string, number>>({})

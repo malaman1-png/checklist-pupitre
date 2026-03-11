@@ -24,6 +24,7 @@ export function AdminEtincelle({ onBack }: { onBack: () => void }) {
   const [newSoundMaterielId, setNewSoundMaterielId] = useState("")
   const [newSoundQty, setNewSoundQty] = useState(1)
   const [copying, setCopying] = useState(false)
+  const [copyStatus, setCopyStatus] = useState<{ kind: "ok" | "error"; text: string } | null>(null)
 
   const sortedVersions = useMemo(() => {
     return ([...(versions as any[] || [])] as any[]).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
@@ -51,29 +52,60 @@ export function AdminEtincelle({ onBack }: { onBack: () => void }) {
   async function duplicateCourteToLongue() {
     const shortVersion = sortedVersions.find((v: any) => v.slug === "courte-20min")
     const longVersion = sortedVersions.find((v: any) => v.slug === "longue-30min")
-    if (!shortVersion || !longVersion) return
-
-    setCopying(true)
-    const { data: sourceItems, error } = await supabase
-      .from("etincelle_version_items")
-      .select("materiel_id, quantity")
-      .eq("version_id", shortVersion.id)
-    if (error) {
-      setCopying(false)
+    if (!shortVersion || !longVersion) {
+      setCopyStatus({ kind: "error", text: "Versions courte/longue introuvables." })
       return
     }
 
-    await adminDelete("etincelle_version_items", { version_id: longVersion.id })
-    for (const item of sourceItems || []) {
-      await adminInsert("etincelle_version_items", {
+    setCopying(true)
+    setCopyStatus(null)
+    try {
+      const [{ data: sourceItems, error: sourceErr }, { data: longBackup, error: backupErr }] = await Promise.all([
+        supabase
+          .from("etincelle_version_items")
+          .select("materiel_id, quantity")
+          .eq("version_id", shortVersion.id),
+        supabase
+          .from("etincelle_version_items")
+          .select("materiel_id, quantity")
+          .eq("version_id", longVersion.id),
+      ])
+
+      if (sourceErr) throw new Error(sourceErr.message || "Lecture version courte impossible.")
+      if (backupErr) throw new Error(backupErr.message || "Lecture version longue impossible.")
+
+      const delRes = await adminDelete("etincelle_version_items", { version_id: longVersion.id })
+      if (delRes.error) throw new Error(delRes.error)
+
+      const rowsToInsert = (sourceItems || []).map((item: any) => ({
         version_id: longVersion.id,
         materiel_id: item.materiel_id,
         quantity: item.quantity,
-      })
+      }))
+
+      if (rowsToInsert.length > 0) {
+        const insertRes = await adminInsert("etincelle_version_items", rowsToInsert)
+        if (insertRes.error) {
+          const rollbackRows = (longBackup || []).map((item: any) => ({
+            version_id: longVersion.id,
+            materiel_id: item.materiel_id,
+            quantity: item.quantity,
+          }))
+          if (rollbackRows.length > 0) {
+            await adminInsert("etincelle_version_items", rollbackRows)
+          }
+          throw new Error(insertRes.error)
+        }
+      }
+
+      setCopyStatus({ kind: "ok", text: "Version longue synchronisee depuis la version courte." })
+      globalMutate(`etincelle_version_items_${shortVersion.id}`)
+      globalMutate(`etincelle_version_items_${longVersion.id}`)
+    } catch (err: any) {
+      setCopyStatus({ kind: "error", text: err?.message || "Duplication impossible." })
+    } finally {
+      setCopying(false)
     }
-    globalMutate(`etincelle_version_items_${shortVersion.id}`)
-    globalMutate(`etincelle_version_items_${longVersion.id}`)
-    setCopying(false)
   }
 
   return (
@@ -93,6 +125,17 @@ export function AdminEtincelle({ onBack }: { onBack: () => void }) {
           </button>
         </div>
         <p className="text-xs text-muted-foreground mb-3">Version longue: base de la courte + materiel supplementaire.</p>
+        {copyStatus && (
+          <p
+            className={`mb-3 rounded-lg border px-3 py-2 text-xs ${
+              copyStatus.kind === "ok"
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                : "border-destructive/40 bg-destructive/10 text-destructive"
+            }`}
+          >
+            {copyStatus.text}
+          </p>
+        )}
 
         <div className="flex flex-col gap-3">
           {sortedVersions.map((version: any) => (
