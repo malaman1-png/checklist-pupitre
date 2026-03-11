@@ -205,7 +205,7 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
   const { data: settings } = useSettings()
   const [creating, setCreating] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [newSpectacle, setNewSpectacle] = useState<SpectacleKind>("pupitre")
+  const [newSpectacle, setNewSpectacle] = useState<SpectacleKind | null>(null)
   const [createError, setCreateError] = useState<string | null>(null)
   const autoDeleteDays = (settings as any)?.auto_delete_days ?? 0
 
@@ -227,6 +227,11 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
   }
 
   async function handleNew() {
+    if (!newSpectacle) {
+      setCreateError("Choisis d'abord un spectacle.")
+      return
+    }
+
     setCreating(true)
     setCreateError(null)
 
@@ -372,7 +377,7 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
         <button
           onClick={() => {
             setCreateError(null)
-            setNewSpectacle("pupitre")
+            setNewSpectacle(null)
             setShowCreateModal(true)
           }}
           disabled={creating}
@@ -454,7 +459,7 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
               </button>
               <button
                 onClick={handleNew}
-                disabled={creating}
+                disabled={creating || !newSpectacle}
                 className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.99] disabled:opacity-60"
               >
                 {creating ? "Creation..." : "Continuer"}

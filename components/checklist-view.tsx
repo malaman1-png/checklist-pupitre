@@ -285,12 +285,13 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
   }, [projectId])
 
   const [localChecks, setLocalChecks] = useState<Record<string, boolean>>({})
-  const [celebrated, setCelebrated] = useState(false)
   const touchTapSlopPx = getTouchTapSlopPxFromSettings(settings)
   const fontLevel = propFontLevel ?? 1
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const touchStartRef = useRef<Record<string, { x: number; y: number; ts: number }>>({})
   const ignoredClickUntilRef = useRef<Record<string, number>>({})
+  const lastCompletionStateRef = useRef(false)
+  const lastCelebrationAtRef = useRef(0)
 
   // Init local checks from localStorage
   useEffect(() => {
@@ -327,34 +328,36 @@ export function ChecklistView({ projectId, onBack, onEdit, fontLevel: propFontLe
     (items as any[]).length > 0 &&
     (items as any[]).every((item: any) => isChecked(item.id))
 
-  // Confetti + sound celebration
+  // Confetti + sound celebration (trigger only on false->true completion transition)
   useEffect(() => {
-    if (allChecked && !celebrated && settings) {
-      setCelebrated(true)
+    const isComplete = Boolean(allChecked)
+    const transitionedToComplete = isComplete && !lastCompletionStateRef.current
+    lastCompletionStateRef.current = isComplete
 
-      if (settings.confetti_enabled) {
-        launchCelebrationMix()
-      }
+    if (!isComplete || !settings || !transitionedToComplete) return
 
-      if (settings.sound_enabled) {
-        const audio = audioRef.current
-        if (audio) {
-          audio.currentTime = 0
-          const playPromise = audio.play()
-          if (playPromise) {
-            playPromise.catch(() => {
-              // Ignore autoplay/device audio restrictions.
-            })
-          }
+    // Guard against duplicate network/local completion pulses that can cause audio echo.
+    const now = Date.now()
+    if (now - lastCelebrationAtRef.current < 2200) return
+    lastCelebrationAtRef.current = now
+
+    if (settings.confetti_enabled) {
+      launchCelebrationMix()
+    }
+
+    if (settings.sound_enabled) {
+      const audio = audioRef.current
+      if (audio) {
+        audio.currentTime = 0
+        const playPromise = audio.play()
+        if (playPromise) {
+          playPromise.catch(() => {
+            // Ignore autoplay/device audio restrictions.
+          })
         }
       }
     }
-  }, [allChecked, celebrated, settings])
-
-  // Allow replay when user leaves 100% then returns to 100%.
-  useEffect(() => {
-    if (!allChecked) setCelebrated(false)
-  }, [allChecked])
+  }, [allChecked, settings])
 
   // Debounce rapid taps: track last toggle per item to prevent double-fires
   const lastToggleRef = useRef<Record<string, number>>({})

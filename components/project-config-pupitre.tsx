@@ -569,7 +569,7 @@ export function ProjectConfigPupitre({ projectId, onBack, onGenerated }: Project
             <ArrowLeft className="h-4 w-4" />
             Retour
           </button>
-          <h1 className="font-display text-xl font-semibold text-foreground text-center">{"Ingredients du spectacle"}</h1>
+          <h1 className="font-display text-xl font-semibold text-foreground text-center">{"Pupitre"}</h1>
         <p className="text-sm text-muted-foreground text-center mt-1 leading-relaxed">
           {"compose ton pupitre et clique en bas sur le bouton Generer"}
         </p>
