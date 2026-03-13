@@ -1,6 +1,7 @@
 import React from "react"
 import type { Metadata, Viewport } from 'next'
 import { RegisterSW } from '@/components/register-sw'
+import { ThemeProvider } from '@/components/theme-provider'
 
 import './globals.css'
 
@@ -35,8 +36,10 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
-        {children}
-        <RegisterSW />
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          {children}
+          <RegisterSW />
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -1,0 +1,4 @@
+{"sessionId":"9a66a7","runId":"run-404-1","hypothesisId":"H3","location":"app/page.tsx:HomeInner","message":"auto-delete HEAD request start","data":{"requestPath":"/"},"timestamp":1773312634699}
+{"sessionId":"9a66a7","runId":"run-404-1","hypothesisId":"H1","location":"components/register-sw.tsx:RegisterSW","message":"service worker registration success","data":{"scope":"http://127.0.0.1:3000/","active":true,"waiting":false,"installing":false},"timestamp":1773312634704}
+{"sessionId":"9a66a7","runId":"run-404-1","hypothesisId":"H2","location":"app/page.tsx:HomeInner","message":"home hydrated with current url","data":{"href":"http://127.0.0.1:3000/","pathname":"/","hasServiceWorkerController":true},"timestamp":1773312634707}
+{"sessionId":"9a66a7","runId":"run-404-1","hypothesisId":"H3","location":"app/page.tsx:HomeInner","message":"auto-delete HEAD response","data":{"status":200,"ok":true,"requestPath":"/"},"timestamp":1773312634708}

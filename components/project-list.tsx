@@ -1,11 +1,20 @@
 "use client"
 
 import React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Audiowide } from "next/font/google"
 import { useProjects, useArtists, useRealtimeProjects, useChecklistItems, useSettings, supabase, globalMutate } from "@/lib/hooks"
-import { Plus, Trash2, Loader2, Pencil, ClipboardList, Settings, Flame, Lightbulb, Check } from "lucide-react"
+import { Plus, Trash2, Loader2, Pencil, ClipboardList, Settings, Flame, Lightbulb, Check, Moon, Sun, Monitor } from "lucide-react"
+import { useTheme } from "next-themes"
 import { getFormatLabel, getSpectacleLabel, normalizeSpectacle, type SpectacleKind } from "@/lib/format-utils"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const headerTitleFont = Audiowide({ subsets: ["latin"], weight: "400" })
 
@@ -203,13 +212,16 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
   const { data: projects, isLoading } = useProjects()
   const { data: artists } = useArtists()
   const { data: settings } = useSettings()
+  const { theme, setTheme, resolvedTheme } = useTheme()
   const [creating, setCreating] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newSpectacle, setNewSpectacle] = useState<SpectacleKind | null>(null)
   const [createError, setCreateError] = useState<string | null>(null)
+  const [themeReady, setThemeReady] = useState(false)
   const autoDeleteDays = (settings as any)?.auto_delete_days ?? 0
 
   useRealtimeProjects()
+  useEffect(() => { setThemeReady(true) }, [])
 
   const artistMap: Record<string, any> = {}
   if (artists) {
@@ -291,6 +303,13 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
     globalMutate("projects|created_at|desc")
   }
 
+  const activeTheme = themeReady ? (theme ?? "system") : "system"
+  const themeIcon = !themeReady || activeTheme === "system"
+    ? <Monitor className="h-5 w-5" />
+    : resolvedTheme === "light"
+      ? <Sun className="h-5 w-5" />
+      : <Moon className="h-5 w-5" />
+
   return (
     <div className="relative flex flex-col min-h-dvh overflow-hidden">
       {/* Decorative background logo */}
@@ -311,7 +330,37 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
       <header className="relative z-10 px-4 pt-6 pb-4">
         <div className="rounded-2xl border border-border/55 bg-card/45 px-4 py-3 backdrop-blur-sm shadow-lg shadow-black/10">
           <div className="flex items-center justify-between">
-            <span className="h-9 w-9" aria-hidden="true" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="rounded-xl p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                  aria-label="Changer le theme"
+                >
+                  {themeIcon}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-44">
+                <DropdownMenuLabel>Apparence</DropdownMenuLabel>
+                <DropdownMenuRadioGroup
+                  value={activeTheme}
+                  onValueChange={(value) => setTheme(value as "dark" | "light" | "system")}
+                >
+                  <DropdownMenuRadioItem value="light">
+                    <Sun className="h-4 w-4" />
+                    Clair
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="dark">
+                    <Moon className="h-4 w-4" />
+                    Sombre
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="system">
+                    <Monitor className="h-4 w-4" />
+                    Auto
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <h1 className={`${headerTitleFont.className} max-w-[calc(100%-5.5rem)] bg-gradient-to-r from-cyan-300 via-primary to-fuchsia-300 bg-clip-text text-center text-[0.98rem] font-normal uppercase leading-tight tracking-[0.14em] text-transparent drop-shadow-[0_0_12px_rgba(56,189,248,0.35)] sm:text-[1.12rem]`}>
               Checklist Generator
             </h1>
