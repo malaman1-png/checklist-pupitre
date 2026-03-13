@@ -116,8 +116,8 @@ function ChecklistCard({
     <div
       className={`rounded-2xl border backdrop-blur-sm overflow-hidden shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 ${
         isEtincelle
-          ? "border-amber-500/30 bg-gradient-to-br from-amber-500/[0.05] via-card/80 to-card/90 hover:border-amber-400/45 hover:shadow-amber-500/10"
-          : "border-border/60 bg-card/80 hover:border-primary/35 hover:shadow-primary/10"
+          ? "border-amber-700/30 bg-gradient-to-br from-amber-100/70 via-card/95 to-card hover:border-amber-700/48 hover:shadow-amber-700/10 dark:border-amber-500/30 dark:from-amber-500/[0.05] dark:via-card/80 dark:to-card/90 dark:hover:border-amber-400/45 dark:hover:shadow-amber-500/10"
+          : "pupitre-card"
       }`}
     >
       {/* Main clickable area */}
@@ -130,9 +130,9 @@ function ChecklistCard({
       >
         {/* Top row: format + progress */}
         <div className="flex items-center justify-between mb-2">
-          <span className={`text-xs font-bold uppercase tracking-[0.22em] ${isEtincelle ? "text-amber-400" : "text-primary"}`}>
+          <span className={`text-xs font-bold uppercase tracking-[0.22em] ${isEtincelle ? "text-amber-700 dark:text-amber-400" : "pupitre-label"}`}>
             {getSpectacleLabel(spectacle)}
-            <span className={`ml-2 text-[11px] font-medium tracking-[0.08em] ${isEtincelle ? "text-amber-200/80" : "text-muted-foreground"}`}>
+            <span className={`ml-2 text-[11px] font-medium tracking-[0.08em] ${isEtincelle ? "text-amber-700/85 dark:text-amber-200/80" : "pupitre-sub-label"}`}>
               {spectacle === "etincelle" ? (etincelleVersionCardLabel || format) : format}
             </span>
           </span>
@@ -177,7 +177,7 @@ function ChecklistCard({
       </div>
 
       {/* Action bar */}
-      <div className={`flex items-center justify-end gap-1 border-t px-3 py-2 ${isEtincelle ? "border-amber-500/20 bg-amber-500/[0.06]" : "border-border/50 bg-black/10"}`}>
+      <div className={`flex items-center justify-end gap-1 border-t px-3 py-2 ${isEtincelle ? "border-amber-700/20 bg-amber-100/55 dark:border-amber-500/20 dark:bg-amber-500/[0.06]" : "pupitre-card-footer"}`}>
         <button
           onClick={(e) => { e.stopPropagation(); onEdit() }}
           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-primary hover:bg-primary/10"
@@ -318,17 +318,17 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
           src="/slab-logo.png"
           alt=""
           aria-hidden="true"
-          className="w-[72vw] max-w-[560px] select-none mix-blend-screen opacity-[0.12]"
+          className="w-[72vw] max-w-[560px] select-none mix-blend-screen opacity-[0.18]"
           style={{
-            maskImage: "radial-gradient(ellipse at center, black 48%, transparent 82%)",
-            WebkitMaskImage: "radial-gradient(ellipse at center, black 48%, transparent 82%)",
+            maskImage: "radial-gradient(ellipse at center, black 54%, transparent 86%)",
+            WebkitMaskImage: "radial-gradient(ellipse at center, black 54%, transparent 86%)",
           }}
         />
       </div>
 
       {/* Header */}
       <header className="relative z-10 px-4 pt-6 pb-4">
-        <div className="rounded-2xl border border-border/55 bg-card/45 px-4 py-3 backdrop-blur-sm shadow-lg shadow-black/10">
+        <div className="rounded-2xl border border-border/62 bg-card/62 px-4 py-3 backdrop-blur-sm shadow-lg shadow-slate-900/8 dark:border-border/55 dark:bg-card/45 dark:shadow-black/10">
           <div className="flex items-center justify-between">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -361,7 +361,7 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            <h1 className={`${headerTitleFont.className} max-w-[calc(100%-5.5rem)] bg-gradient-to-r from-cyan-300 via-primary to-fuchsia-300 bg-clip-text text-center text-[0.98rem] font-normal uppercase leading-tight tracking-[0.14em] text-transparent drop-shadow-[0_0_12px_rgba(56,189,248,0.35)] sm:text-[1.12rem]`}>
+            <h1 className={`${headerTitleFont.className} home-title-future max-w-[calc(100%-5.5rem)] bg-clip-text text-center text-[0.98rem] leading-tight text-transparent sm:text-[1.12rem]`}>
               Checklist Generator
             </h1>
             <button
@@ -422,7 +422,7 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
       </div>
 
       {/* Sticky bottom button - always visible */}
-      <div className="fixed bottom-0 inset-x-0 p-4 pb-6 bg-gradient-to-t from-background via-background to-transparent z-40">
+      <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border/25 bg-background/22 p-4 pb-6 backdrop-blur-[2px]">
         <button
           onClick={() => {
             setCreateError(null)
@@ -430,10 +430,14 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
             setShowCreateModal(true)
           }}
           disabled={creating}
-          className="cta-premium flex w-full items-center justify-center gap-3 rounded-2xl py-5 text-lg font-bold text-primary-foreground disabled:opacity-50"
+          className="cta-premium cta-home flex w-full items-center justify-center gap-3 rounded-2xl py-4 text-primary-foreground disabled:opacity-50"
         >
-          {creating ? <Loader2 className="relative z-10 h-8 w-8 animate-spin" /> : <Plus className="relative z-10 h-8 w-8 stroke-[3]" />}
-          <span className="relative z-10 tracking-[0.01em]">Nouvelle checklist</span>
+          <span className="cta-home-icon relative z-10">
+            {creating ? <Loader2 className="h-6 w-6 animate-spin" /> : <Plus className="h-6 w-6 stroke-[2.8]" />}
+          </span>
+          <span className="cta-home-label relative z-10 text-base sm:text-[1.02rem]">
+            Nouvelle checklist
+          </span>
         </button>
       </div>
 
@@ -450,16 +454,16 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
                 onClick={() => setNewSpectacle("pupitre")}
                 className={`relative rounded-2xl border px-3 py-3 text-left transition-all duration-150 ${
                   newSpectacle === "pupitre"
-                    ? "border-primary/50 bg-primary/10 ring-1 ring-primary/30 shadow-lg shadow-primary/10"
-                    : "border-border/60 bg-secondary/40 hover:border-muted-foreground/45 hover:bg-secondary/65"
+                    ? "border-sky-700/45 bg-gradient-to-br from-sky-200/70 via-cyan-100/75 to-secondary/80 ring-1 ring-sky-700/25 shadow-lg shadow-sky-700/15 dark:border-primary/50 dark:bg-primary/10 dark:ring-primary/30 dark:shadow-primary/10"
+                    : "border-sky-700/28 bg-gradient-to-br from-sky-100/50 via-secondary/55 to-secondary/65 hover:border-sky-700/48 hover:bg-sky-100/68 dark:border-border/60 dark:bg-secondary/40 dark:hover:border-muted-foreground/45 dark:hover:bg-secondary/65"
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <Lightbulb className="h-4 w-4 text-primary" />
+                  <Lightbulb className="h-4 w-4 text-sky-700 dark:text-primary" />
                   <p className="text-sm font-semibold text-foreground">Pupitre</p>
                 </div>
                 {newSpectacle === "pupitre" && (
-                  <span className="absolute right-2 top-2 rounded-full bg-primary/20 p-1 text-primary">
+                  <span className="absolute right-2 top-2 rounded-full bg-sky-200/70 p-1 text-sky-700 dark:bg-primary/20 dark:text-primary">
                     <Check className="h-3 w-3" />
                   </span>
                 )}
@@ -468,22 +472,22 @@ export function ProjectList({ onOpen, onEdit, onNew, onControlRoom }: ProjectLis
                 onClick={() => setNewSpectacle("etincelle")}
                 className={`relative rounded-2xl border px-3 py-3 text-left transition-all duration-150 ${
                   newSpectacle === "etincelle"
-                    ? "border-amber-400/60 bg-gradient-to-br from-amber-500/[0.22] via-amber-500/[0.14] to-secondary/60 ring-1 ring-amber-300/35 shadow-lg shadow-amber-500/20"
-                    : "border-amber-500/35 bg-gradient-to-br from-amber-500/[0.10] via-secondary/45 to-secondary/55 hover:border-amber-400/55 hover:bg-amber-500/[0.14]"
+                    ? "border-amber-700/45 bg-gradient-to-br from-amber-200/70 via-amber-100/75 to-secondary/80 ring-1 ring-amber-700/25 shadow-lg shadow-amber-700/15 dark:border-amber-400/60 dark:from-amber-500/[0.22] dark:via-amber-500/[0.14] dark:to-secondary/60 dark:ring-amber-300/35 dark:shadow-amber-500/20"
+                    : "border-amber-700/30 bg-gradient-to-br from-amber-100/55 via-secondary/55 to-secondary/65 hover:border-amber-700/50 hover:bg-amber-100/72 dark:border-amber-500/35 dark:from-amber-500/[0.10] dark:via-secondary/45 dark:to-secondary/55 dark:hover:border-amber-400/55 dark:hover:bg-amber-500/[0.14]"
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <Flame
                     className={`h-4 w-4 ${
                       newSpectacle === "etincelle"
-                        ? "text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.55)]"
-                        : "text-amber-400/90"
+                        ? "text-amber-700 drop-shadow-[0_0_4px_rgba(180,83,9,0.22)] dark:text-amber-300 dark:drop-shadow-[0_0_6px_rgba(251,191,36,0.55)]"
+                        : "text-amber-700/85 dark:text-amber-400/90"
                     }`}
                   />
                   <p className="text-sm font-semibold text-foreground">Etincelle</p>
                 </div>
                 {newSpectacle === "etincelle" && (
-                  <span className="absolute right-2 top-2 rounded-full bg-amber-500/25 p-1 text-amber-300">
+                  <span className="absolute right-2 top-2 rounded-full bg-amber-200/75 p-1 text-amber-700 dark:bg-amber-500/25 dark:text-amber-300">
                     <Check className="h-3 w-3" />
                   </span>
                 )}

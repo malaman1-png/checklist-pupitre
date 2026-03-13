@@ -51,56 +51,8 @@ function HomeInner() {
   const { data: settings } = useSettings()
   const mobileBackConfirmEnabled = ((settings as any)?.mobile_back_confirm_enabled ?? true) as boolean
 
-  // #region agent log
-  const logDebug = useCallback((hypothesisId: string, message: string, data: Record<string, unknown>) => {
-    fetch("http://127.0.0.1:7591/ingest/f7af43cc-7c25-4b2a-8f50-6109c1f1a694", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "9a66a7" },
-      body: JSON.stringify({
-        sessionId: "9a66a7",
-        runId: "run-404-1",
-        hypothesisId,
-        location: "app/page.tsx:HomeInner",
-        message,
-        data,
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-  }, [])
-  // #endregion
-
   // ---- Hydration ----
   useEffect(() => { setHydrated(true) }, [])
-
-  // #region agent log
-  useEffect(() => {
-    if (!hydrated || typeof window === "undefined") return
-    logDebug("H2", "home hydrated with current url", {
-      href: window.location.href,
-      pathname: window.location.pathname,
-      hasServiceWorkerController: typeof navigator !== "undefined" && !!navigator.serviceWorker?.controller,
-    })
-  }, [hydrated, logDebug])
-  // #endregion
-
-  // #region agent log
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const onResourceError = (event: Event) => {
-      const target = event.target as HTMLElement | null
-      const src = (target as HTMLScriptElement | HTMLImageElement | null)?.getAttribute?.("src")
-      const href = (target as HTMLLinkElement | null)?.getAttribute?.("href")
-      logDebug("H7", "window resource load error", {
-        tagName: target?.tagName || null,
-        src: src || null,
-        href: href || null,
-        pageHref: window.location.href,
-      })
-    }
-    window.addEventListener("error", onResourceError, true)
-    return () => window.removeEventListener("error", onResourceError, true)
-  }, [logDebug])
-  // #endregion
 
   // ---- Auto-delete old checklists ----
   useEffect(() => {
@@ -112,22 +64,13 @@ function HomeInner() {
       // Use server date when possible to avoid client clock skew deleting too much.
       let now = new Date()
       try {
-        // #region agent log
-        logDebug("H3", "auto-delete HEAD request start", { requestPath: "/" })
-        // #endregion
         const res = await fetch("/", { method: "HEAD", cache: "no-store" })
-        // #region agent log
-        logDebug("H3", "auto-delete HEAD response", { status: res.status, ok: res.ok, requestPath: "/" })
-        // #endregion
         const serverDate = res.headers.get("date")
         if (serverDate) {
           const parsed = new Date(serverDate)
           if (!Number.isNaN(parsed.getTime())) now = parsed
         }
       } catch {
-        // #region agent log
-        logDebug("H3", "auto-delete HEAD request failed", { requestPath: "/" })
-        // #endregion
         // Fallback to local clock if server date is unavailable
       }
 
@@ -284,14 +227,8 @@ function HomeInner() {
         },
         body: JSON.stringify({ action: "ping", table: "settings" }),
       })
-      // #region agent log
-      logDebug("H4", "isStoredPasswordStillValid admin ping", { status: res.status, ok: res.ok, path: "/api/admin" })
-      // #endregion
       return res.ok
     } catch {
-      // #region agent log
-      logDebug("H4", "isStoredPasswordStillValid admin ping failed", { path: "/api/admin" })
-      // #endregion
       return false
     }
   }
@@ -333,9 +270,6 @@ function HomeInner() {
         },
         body: JSON.stringify({ action: "ping", table: "settings" }),
       })
-      // #region agent log
-      logDebug("H4", "handlePasswordSubmit admin ping", { status: res.status, ok: res.ok, path: "/api/admin" })
-      // #endregion
       if (res.status === 401) {
         setPasswordError(true)
         setPasswordErrorMsg("Mot de passe incorrect.")
@@ -347,9 +281,6 @@ function HomeInner() {
         return
       }
     } catch {
-      // #region agent log
-      logDebug("H4", "handlePasswordSubmit admin ping failed", { path: "/api/admin" })
-      // #endregion
       setPasswordError(true)
       setPasswordErrorMsg("Impossible de contacter le serveur. Verifie ta connexion.")
       return
