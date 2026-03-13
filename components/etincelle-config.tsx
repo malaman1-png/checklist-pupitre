@@ -11,6 +11,7 @@ import {
   supabase,
   globalMutate,
 } from "@/lib/hooks"
+import { getEtincelleTypeSortOrder, sortTypesForEtincelle } from "@/lib/type-order"
 import { ArrowLeft, Loader2, Sparkles, UserPlus, X } from "lucide-react"
 
 interface EtincelleConfigProps {
@@ -88,6 +89,8 @@ export function EtincelleConfig({ projectId, onBack, onGenerated }: EtincelleCon
 
       const costumeType = (types as any[])?.find((t: any) => t.name.toLowerCase().includes("costume"))
       const costumeTypeId = costumeType?.id
+      const etincelleSortedTypes = sortTypesForEtincelle((types as any[]) || [])
+      const lastEtincelleType = etincelleSortedTypes.length > 0 ? etincelleSortedTypes[etincelleSortedTypes.length - 1] : null
 
       const artistItemResults = await Promise.all(
         selectedArtistIds.map((artistId) =>
@@ -129,12 +132,10 @@ export function EtincelleConfig({ projectId, onBack, onGenerated }: EtincelleCon
           checked: false,
           artist_key: cName,
         })
-        const sortedTypes = [...(types as any[])].sort((a: any, b: any) => (b.sort_order || 0) - (a.sort_order || 0))
-        const lastType = sortedTypes[0]
         artistChecklistRows.push({
           project_id: projectId,
           materiel_id: null,
-          type_id: lastType?.id,
+          type_id: lastEtincelleType?.id,
           quantity: 1,
           checked: false,
           artist_key: `__custom_perso_${cName}`,
@@ -191,10 +192,11 @@ export function EtincelleConfig({ projectId, onBack, onGenerated }: EtincelleCon
       ]
 
       if (allRows.length > 0) {
+        const typeMap = new Map<string, any>(((types as any[]) || []).map((t: any) => [t.id, t]))
         allRows.sort((a, b) => {
-          const typeA = (types as any[])?.find((t: any) => t.id === a.type_id)
-          const typeB = (types as any[])?.find((t: any) => t.id === b.type_id)
-          return (typeA?.sort_order || 0) - (typeB?.sort_order || 0)
+          const typeA = typeMap.get(a.type_id)
+          const typeB = typeMap.get(b.type_id)
+          return getEtincelleTypeSortOrder(typeA) - getEtincelleTypeSortOrder(typeB)
         })
       }
 
